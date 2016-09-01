@@ -10,6 +10,7 @@ import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -84,16 +85,18 @@ public class JoeFlowSays extends JFrame{
             }
         
         pack();
-        //setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
         setResizable(false);
         setTitle("Joe Flow Says!");
-        setSize(750,750);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setIconImage(JFlowIcon);
-        pane.add(getToolBar(), BorderLayout.PAGE_START);
+        this.setVisible(true);
+        
+        JToolBar topMenuBar = getToolBar();
+        pane.add(topMenuBar, BorderLayout.PAGE_START);
         pane.add(startPanel, BorderLayout.CENTER);
-        //pane.validate();
+        setSize(750,750+topMenuBar.getHeight());
         
         thumbs = new ImageIcon[5];
         
@@ -202,9 +205,9 @@ public class JoeFlowSays extends JFrame{
             topPanel.countDown();
             
             lightSeq = lightUp(seqLength, lights);
-
+            
             for (JButton b : buttons){ b.setEnabled(true);}
-
+            
             numResponses = 0;
             
             synchronized(LOCK) {
@@ -216,8 +219,6 @@ public class JoeFlowSays extends JFrame{
                     }
                 }
             }
-        
-            
             
             for (JButton b : buttons){ b.setEnabled(false);}
             
@@ -335,7 +336,7 @@ public class JoeFlowSays extends JFrame{
         JPanel outerPanel = new JPanel();
         JPanel lightPanel = new JPanel();
         
-        outerPanel.setBackground(new Color(255,255,255,1));
+        outerPanel.setOpaque(false);
         lightPanel.setBackground(Color.WHITE);
         lightPanel.setBorder(new LineBorder(Color.BLACK, 4));
         
@@ -377,8 +378,8 @@ public class JoeFlowSays extends JFrame{
     private JPanel setUpButtonsRow() {
         
         JPanel buttRow = new JPanel();
+        buttRow.setOpaque(false);
         buttRow.setLayout(new GridLayout(2, 5));
-        buttRow.setBackground(new Color(255,255,255,1));
         
         Action buttListen = new ButtonAction();
         
@@ -450,7 +451,7 @@ public class JoeFlowSays extends JFrame{
         resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS));
         setAbsoluteSize(resultsPanel, 620, 140);
         resultsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        resultsPanel.setBackground(new Color(255,255,255,1));
+        resultsPanel.setOpaque(false);
         
         JPanel computerSeqBox = new JPanel();
         computerSeqBox.setLayout(new BoxLayout(computerSeqBox,BoxLayout.X_AXIS));
@@ -693,17 +694,24 @@ public class JoeFlowSays extends JFrame{
             g.drawImage(bg, 0, 0, null);
         }
     }
-    
+   
     private class MsgPanel extends JPanel {
         
         String txt;
         JLabel displayText;
-        private MsgPanel(String initText){
+        private MsgPanel(String initText) {
             
             txt = initText;
             
             displayText = new JLabel(txt);
-            displayText.setFont(new Font("Karmatic Arcade",Font.PLAIN, 35));
+            Font msgFont;
+            try{
+                msgFont = Font.createFont(Font.TRUETYPE_FONT,
+                        new File(getClass().getResource("/Images/Look and Feel/ka1.ttf").toURI()));
+            } catch(IOException | URISyntaxException | FontFormatException f){
+                msgFont = new Font("Arial", Font.PLAIN, 35);}
+
+            displayText.setFont(msgFont.deriveFont(35f));
             displayText.setForeground(Color.WHITE);
             displayText.setAlignmentX(Component.CENTER_ALIGNMENT);
             
@@ -766,7 +774,7 @@ public class JoeFlowSays extends JFrame{
             @Override
             public void run() {
                 JoeFlowSays jfs = new JoeFlowSays();
-                jfs.setVisible(true);
+                //jfs.setVisible(true);
             }
         });
     
