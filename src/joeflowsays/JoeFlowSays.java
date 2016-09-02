@@ -19,8 +19,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import static java.time.Clock.tick;
 import java.util.Arrays;
 import javax.imageio.ImageIO;
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
@@ -36,30 +39,39 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
-import javax.swing.JLayeredPane;
-import static javax.swing.JLayeredPane.FRAME_CONTENT_LAYER;
-import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequencer;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Track;
 
 public class JoeFlowSays extends JFrame{
 
-    private Container pane;
-    private JPanel startPanel;
-    private JPanel gamePanel;
-    private JPanel userSeq;
-    private JPanel computerSeq;
-    private int[] responses = new int[10];
-    private int numResponses;
-    private ImageIcon[] thumbs;
-    Object LOCK = new Object();
-    private ImageIcon JoeIcon = new ImageIcon(getClass().getResource("/Images/Look and Feel/GameOverIcon.png"));
-    private PanelChangeListener PCListener = new PanelChangeListener();
-    private JDialog gameOverContainer;
+    private Container       pane;
+    private JPanel          startPanel;
+    private JPanel          gamePanel;
+    private JPanel          userSeq;
+    private JPanel          computerSeq;
+    private int[]           responses = new int[10];
+    private int             numResponses;
+    private ImageIcon[]     thumbs;
+    private JDialog         gameOverContainer;
+    private JDialog         helpContainer;
+    private JDialog         aboutContainer;
+    private Sequencer       player;
+    private Sequence        gameMusic;
+    
+    private ImageIcon JoeIcon =                 new ImageIcon(getClass().getResource("/Images/Look and Feel/GameOverIcon.png"));
+    private PanelChangeListener PCListener =    new PanelChangeListener();
+    Object LOCK =                               new Object();
     
     public JoeFlowSays() {
         
@@ -68,11 +80,27 @@ public class JoeFlowSays extends JFrame{
     
     private void initUI() {
         
-        pane = getContentPane();
-        
-        
+        pane = getContentPane(); 
         startPanel = getStartPanel();
         
+        int randSong = randomInteger(1,3);
+        
+        
+        try{
+            gameMusic = MidiSystem.getSequence(getClass().getResource("/Sound/" +Integer.toString(randSong)+".mid"));
+            player = MidiSystem.getSequencer();
+            player.setSequence(gameMusic);
+            player.open();
+            player.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
+            
+            
+            //Adjust Volume
+            adjustVolume(gameMusic, 30);
+            player.start();
+        }
+        catch(InvalidMidiDataException | IOException | MidiUnavailableException u){
+        System.out.println("It happened");
+        }
         
         
         
@@ -88,7 +116,7 @@ public class JoeFlowSays extends JFrame{
         setLayout(new BorderLayout());
         setResizable(false);
         setTitle("Joe Flow Says!");
-        setLocationRelativeTo(null);
+        setLocationByPlatform(false);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setIconImage(JFlowIcon);
         this.setVisible(true);
@@ -96,6 +124,8 @@ public class JoeFlowSays extends JFrame{
         JToolBar topMenuBar = getToolBar();
         pane.add(topMenuBar, BorderLayout.PAGE_START);
         pane.add(startPanel, BorderLayout.CENTER);
+        pane.validate();
+        
         setSize(750,750+topMenuBar.getHeight());
         
         thumbs = new ImageIcon[5];
@@ -108,12 +138,26 @@ public class JoeFlowSays extends JFrame{
         
     }
     
+    private void adjustVolume(Sequence musicSeq, int volume) throws InvalidMidiDataException{
+        Track[] tracks = musicSeq.getTracks();
+            for (Track t : tracks){
+                for(int channel = 0; channel < 16; channel++){
+                    t.add(new MidiEvent(new ShortMessage(ShortMessage.CONTROL_CHANGE, channel, 7, volume), 0));
+                }    
+            }
+    }
+    
     private JToolBar getToolBar(){
         JToolBar menuBar = new JToolBar();
         menuBar.setLayout(new BoxLayout(menuBar, BoxLayout.X_AXIS));
         
         JButton help = new JButton("Help");
+        help.setName("Help");
+        help.addActionListener(PCListener);
+        
         JButton about = new JButton("About");
+        about.setName("About");
+        about.addActionListener(PCListener);
         
         menuBar.add(Box.createHorizontalGlue());
         menuBar.add(help);
@@ -121,7 +165,8 @@ public class JoeFlowSays extends JFrame{
         menuBar.add(about);
         menuBar.setFloatable(false);
         menuBar.setRollover(true);
-        menuBar.setBackground(Color.DARK_GRAY);
+        menuBar.setBackground(Color.WHITE);
+        menuBar.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, Color.WHITE, Color.LIGHT_GRAY));
         
         return menuBar;
     }
@@ -242,6 +287,69 @@ public class JoeFlowSays extends JFrame{
         if (!stillWinning){
             showGameOverDialog();
         }
+
+    }
+    
+    private void showHelpDialog(){
+        helpContainer = new JDialog(this, "Help", true);
+        
+        JPanel helpPanel = new JPanel();
+        helpPanel.setLayout(new BoxLayout(helpPanel, BoxLayout.Y_AXIS));
+        
+        JLabel helpText = new JLabel("Insert stuff here \n \n \n \n \n hey hey hey");
+        
+        JPanel topPanel = new JPanel();
+        JButton exitHelp = new JButton("Exit");
+        exitHelp.setName("Exit Help");
+        
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+        exitHelp.addActionListener(PCListener);
+        
+        topPanel.add(Box.createHorizontalGlue());
+        topPanel.add(exitHelp);
+        
+        helpPanel.add(topPanel);
+        helpPanel.add(helpText);
+        
+        helpContainer.setContentPane(helpPanel);
+        helpContainer.setResizable(false);
+        helpContainer.setUndecorated(true);
+        helpContainer.pack();
+        helpContainer.setSize(300,100);
+        helpContainer.setLocationRelativeTo(this);
+        helpContainer.setVisible(true); 
+        
+    }
+    
+    private void showAboutDialog(){
+        
+        aboutContainer = new JDialog(this, "About", true);
+        
+        JPanel aboutPanel = new JPanel();
+        aboutPanel.setLayout(new BoxLayout(aboutPanel, BoxLayout.Y_AXIS));
+        
+        JLabel introText = new JLabel("Insert stuff here \n \n \n \n \n hey hey hey");
+        
+        JPanel topPanel = new JPanel();
+        JButton exitAbout = new JButton("Exit");
+        exitAbout.setName("Exit About");
+        
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+        exitAbout.addActionListener(PCListener);
+        
+        topPanel.add(Box.createHorizontalGlue());
+        topPanel.add(exitAbout);
+        
+        aboutPanel.add(topPanel);
+        aboutPanel.add(introText);
+        
+        aboutContainer.setContentPane(aboutPanel);
+        aboutContainer.setResizable(false);
+        aboutContainer.setUndecorated(true);
+        aboutContainer.pack();
+        aboutContainer.setSize(300,100);
+        aboutContainer.setLocationRelativeTo(this);
+        aboutContainer.setVisible(true);
 
     }
     
@@ -576,6 +684,7 @@ public class JoeFlowSays extends JFrame{
             
             if(null!= buttonName) switch (buttonName){
                 case "Start":
+                    try{adjustVolume(gameMusic,10);} catch(InvalidMidiDataException u){}
                     new Thread(game).start();
                     break;
                 case "Try Again":
@@ -591,6 +700,18 @@ public class JoeFlowSays extends JFrame{
                 case "Quit":
                     gameOverContainer.setVisible(false);
                     System.exit(0);
+                    break;
+                case "About":
+                    showAboutDialog();
+                    break;
+                case "Help":
+                    showHelpDialog();
+                    break;
+                case "Exit About":
+                    aboutContainer.setVisible(false);
+                    break;
+                case "Exit Help":
+                    helpContainer.setVisible(false);
                     break;
             }
         }
@@ -774,7 +895,6 @@ public class JoeFlowSays extends JFrame{
             @Override
             public void run() {
                 JoeFlowSays jfs = new JoeFlowSays();
-                //jfs.setVisible(true);
             }
         });
     
