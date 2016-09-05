@@ -1,7 +1,19 @@
 package joeflowsays;
 
+/*
+|   Joe Flow Says
+|   A simple memory-based game devloped by Joe Boudreau between June 2016 and
+|   September 2016. Using Java Swing libraries, the purpose of the game is to
+|   showcase various UI attributes, including custom-designed graphic components
+|   parallel event-driven outputs, and audio-visual feedback. 
+|   
+|   Version: 1.0
+|   Date: 04/09/16
+|   
+*/
 
 import java.util.Random;
+import java.util.Arrays;
 
 import java.awt.Container;
 import java.awt.BorderLayout;
@@ -16,17 +28,19 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+
 import java.io.File;
 import java.io.IOException;
+
 import java.net.URISyntaxException;
-import static java.time.Clock.tick;
-import java.util.Arrays;
+
 import javax.imageio.ImageIO;
+
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -46,6 +60,7 @@ import javax.swing.KeyStroke;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+
 import javax.sound.midi.Sequence;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
@@ -53,8 +68,14 @@ import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 
-public class JoeFlowSays extends JFrame{
 
+/**
+ * @author      Joseph Boudreau <thejoeflow@gmail.com>
+ * @version     1.0 
+ */
+public class JoeFlowSays extends JFrame{
+    
+    //Declare global variables
     private Container       pane;
     private JPanel          startPanel;
     private JPanel          gamePanel;
@@ -69,6 +90,7 @@ public class JoeFlowSays extends JFrame{
     private Sequencer       player;
     private Sequence        gameMusic;
     
+    //Initialize some global variables
     private ImageIcon JoeIcon =                 new ImageIcon(getClass().getResource("/Images/Look and Feel/GameOverIcon.png"));
     private PanelChangeListener PCListener =    new PanelChangeListener();
     Object LOCK =                               new Object();
@@ -78,66 +100,74 @@ public class JoeFlowSays extends JFrame{
         initUI();
     }
     
+    /**
+     * Initializer function that is called by the constructor to set up the
+     * initial game window and the static start panel. Sets up the game music 
+     * and the look and feel of the window. Imports the game light thumbnails
+     * as well
+     */
     private void initUI() {
-        
+
         pane = getContentPane(); 
         startPanel = getStartPanel();
         
-        int randSong = randomInteger(1,3);
-        
-        
+        int randSong = randomInteger(1,3); //choose random song to play
         try{
+            //Set up MidiSystem Midi Sequence player
             gameMusic = MidiSystem.getSequence(getClass().getResource("/Sound/" +Integer.toString(randSong)+".mid"));
             player = MidiSystem.getSequencer();
             player.setSequence(gameMusic);
             player.open();
             player.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
             
-            
-            //Adjust Volume
-            adjustVolume(gameMusic, 30);
+            adjustVolume(gameMusic, 30);                //Adjust Volume
             player.start();
         }
-        catch(InvalidMidiDataException | IOException | MidiUnavailableException u){
-        System.out.println("It happened");
-        }
+        catch(InvalidMidiDataException | IOException | MidiUnavailableException u){}
         
         
         
         BufferedImage JFlowIcon = null;
-            try {
+            try {                                       //importing the Image Icon
                 JFlowIcon = ImageIO.read(new File(getClass().
                         getResource("/Images/Look and Feel/WindowIcon.png").toURI()));
             } catch (IOException e){
             } catch (URISyntaxException u){    
             }
         
-        pack();
         setLayout(new BorderLayout());
-        setResizable(false);
         setTitle("Joe Flow Says!");
-        setLocationByPlatform(false);
+        setLocationByPlatform(false);                   //Opens in top-left corner of screen
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setIconImage(JFlowIcon);
-        this.setVisible(true);
+        this.setVisible(true);                          //Opens JFrame
         
         JToolBar topMenuBar = getToolBar();
-        pane.add(topMenuBar, BorderLayout.PAGE_START);
-        pane.add(startPanel, BorderLayout.CENTER);
+        
+        pane.add(topMenuBar, BorderLayout.PAGE_START);  //Add menu bar where "about" and "help buttons will sit
+        pane.add(startPanel, BorderLayout.CENTER);      //Add main start panel below the top menu bar
         pane.validate();
+        pack();
         
-        setSize(750,750+topMenuBar.getHeight());
-        
-        thumbs = new ImageIcon[5];
-        
+        setResizable(false);
+        setSize(750,750+topMenuBar.getHeight());         //leave room for the topMenuBar. The background of the 
+                                                         //start panel is a static 750x750px image
+                                                         
+        thumbs = new ImageIcon[5];  //Initialize the game lights thumbnails for use in the results table
         thumbs[0] = new ImageIcon(getClass().getResource("/Images/Lights/RedLightSmall.jpg"));
         thumbs[1] = new ImageIcon(getClass().getResource("/Images/Lights/BlueLightSmall.jpg"));
         thumbs[2] = new ImageIcon(getClass().getResource("/Images/Lights/GreenLightSmall.jpg"));
         thumbs[3] = new ImageIcon(getClass().getResource("/Images/Lights/YellowLightSmall.jpg"));
         thumbs[4] = new ImageIcon(getClass().getResource("/Images/Lights/OrangeLightSmall.jpg"));
-        
     }
     
+    /**
+     * Adjusts the volume of a Midi audio sequence
+     * 
+     * @param musicSeq  the Sequence object that will have their tracks lowered in volume
+     * @param volume    the volume level that the tracks will be set to, integer between 0-127
+     * @throws InvalidMidiDataException 
+     */
     private void adjustVolume(Sequence musicSeq, int volume) throws InvalidMidiDataException{
         Track[] tracks = musicSeq.getTracks();
             for (Track t : tracks){
@@ -147,6 +177,17 @@ public class JoeFlowSays extends JFrame{
             }
     }
     
+    /**
+     * Returns a JToolBar object that will be used at the top of the game
+     * content pane. 
+     * <p>
+     * This function sets up the visual appearance and attributes of the
+     * game's menu bar. It adds two buttons: Help and About. It aligns
+     * them with the far right side of the window using a BoxLayout and 
+     * a horizontal glue object.
+     * 
+     * @return the JToolBar to use at the top of the game content pane
+     */
     private JToolBar getToolBar(){
         JToolBar menuBar = new JToolBar();
         menuBar.setLayout(new BoxLayout(menuBar, BoxLayout.X_AXIS));
@@ -171,6 +212,15 @@ public class JoeFlowSays extends JFrame{
         return menuBar;
     }
     
+    /**
+     * Returns the JGamePanel object that will be used as the start panel.
+     * <p>
+     * This function is called in the initUI function. It creates a JGamePanel
+     * and adds the start button to it.
+     * 
+     * @return the JGamePanel object to be used as the start panel
+     * @see JGamePanel
+     */
     private JGamePanel getStartPanel() {
         
         JGamePanel sP = new JGamePanel("/Images/Look and Feel/backgroundMain.jpg");
@@ -184,39 +234,34 @@ public class JoeFlowSays extends JFrame{
         startButt.setAlignmentX(Box.CENTER_ALIGNMENT);
         startButt.addActionListener(PCListener);
         
-        sP.add(Box.createVerticalStrut(550));
+        sP.add(Box.createVerticalStrut(550));       //Add the button 550px down from the top of the window
         sP.add(startButt);
  
         return sP;
     }
     
+    /**
+     * The main game flow controller. 
+     * <p>
+     * This function is the process controller for the gameplay of Joe Flow Says
+     * It is called by the button Action Listener "PCListener" when the start
+     * button is pressed in the start panel.
+     * 
+     * @see #PCListener
+     * 
+     */
     private void startGame() {
-        gamePanel = new JGamePanel("/Images/Look and Feel/backgroundGame.jpg");
+        
+        gamePanel = new JGamePanel("/Images/Look and Feel/backgroundGame.jpg"); 
         gamePanel.setLayout(new BoxLayout(gamePanel, BoxLayout.Y_AXIS));
         
-        JPanel lightsPanel = setUpLightsRow();
-        JPanel lightsRow = (JPanel) lightsPanel.getComponent(1);
-        
-        JLight[] lights = new JLight[5];
-        int k = 0;
-       
-        for (Component jC : lightsRow.getComponents()){
-            lights[k++] = (JLight) jC;
-        }
-
-        JPanel buttonRow = setUpButtonsRow();
-        buttonRow.setAlignmentY(Container.CENTER_ALIGNMENT);
-        
-        JButton[] buttons = new JButton[5];
-       
-        for (int j = 0; j < 5; j++) {
-            buttons[j] = (JButton) buttonRow.getComponent(j);
-        }
-
-        JPanel resultsPanel = setUpResultsPanel();
-        
+        //Set up the panels that will be added to the gamePanel
         MsgPanel topPanel = new MsgPanel("Ready?");
-        
+        JPanel lightsPanel = setUpLightsRow();
+        JPanel buttonRow = setUpButtonsRow();
+        JPanel resultsPanel = setUpResultsPanel();
+
+        //Lay out the panels in the game Panel
         gamePanel.add(topPanel);
         gamePanel.add(lightsPanel);
         gamePanel.add(Box.createVerticalStrut(40));
@@ -225,36 +270,69 @@ public class JoeFlowSays extends JFrame{
         gamePanel.add(resultsPanel);
         gamePanel.add(Box.createVerticalStrut(20));
         
-        
+        //if coming from the start panel, remove the start panel before adding the game panel
         if (pane.getComponentCount() > 0 && pane.getComponent(1).equals(startPanel)){
             pane.remove(startPanel);
         }
         pane.add(gamePanel);
         pane.validate();
         
-        try{ Thread.currentThread().sleep(1800);} catch (InterruptedException e) {};
-        topPanel.removeText();
-        
+        /*The following code block retrieves the 5 JLight objects that are
+        set up in the function setUpLightsRow(). The JLights are passed as
+        parameters to the light up sequence function during the game, so the
+        explicit object pointers are added to an array named "lights"
+        */
+        JPanel lightsRow = (JPanel) lightsPanel.getComponent(1);
+        JLight[] lights = new JLight[5];
+        int k = 0;
+       
+        for (Component jC : lightsRow.getComponents()){
+            lights[k++] = (JLight) jC;
+        }
+
+        /*The following code block retrieves the 5 JButtons that are
+        set up in the function setUpLButtonsRow(). The JButtons are periodically
+        enabled and disabled during the gameplay, so the explicit object pointers
+        are added to an array named "buttons"
+        */
+        JButton[] buttons = new JButton[5];
+       
+        for (int j = 0; j < 5; j++) {
+            buttons[j] = (JButton) buttonRow.getComponent(j);
+        }
+
+        //The rest of the code below this point is the actual game play
+        try{ Thread.currentThread().sleep(1500);} catch (InterruptedException e) {};
+        topPanel.removeText();                                  //Remove the "Ready" message after 1.5 seconds
         pane.validate();
         
         boolean stillWinning = true;
-        int seqLength = 1;
+        int seqLength = 1;                                      //seqLength is the number of lights to light up in a row, increases by 1 each level
         int[] lightSeq;
+        
         while(stillWinning && seqLength < 10){
             
             try{ Thread.currentThread().sleep(700);} catch (InterruptedException e) {};
-            topPanel.setText("Level " + Integer.toString(seqLength));
-            try{ Thread.currentThread().sleep(700);} catch (InterruptedException e) {};
-            topPanel.removeText();
+            topPanel.setText("Level " + Integer.toString(seqLength));   //indicate level
+            try{ Thread.currentThread().sleep(500);} catch (InterruptedException e) {};
+            topPanel.removeText();                                      //remove level text
             try{ Thread.currentThread().sleep(200);} catch (InterruptedException e) {};
-            topPanel.countDown();
+            topPanel.countDown();                                       //initiate a 3..2..1 countdown
             
-            lightSeq = lightUp(seqLength, lights);
+            lightSeq = lightUp(seqLength, lights);              //Display the light sequence   
             
-            for (JButton b : buttons){ b.setEnabled(true);}
+            for (JButton b : buttons){ b.setEnabled(true);}     //Enable the buttons    
             
+            /*
+            This while loop waits for the global variable "numResponses" to reach
+            the required number of responses (seqLength). This variable is incremented
+            within the buttonAction action listener whenever a response button is
+            clicked. The loop utlizies a object wait method in the body of the loop
+            to avoid computationally expensive loop condition checking. The object
+            "LOCK" is notified from the buttonAction action listener every time a
+            response button is clicked, so it only checks the condition every click
+            */
             numResponses = 0;
-            
             synchronized(LOCK) {
                 while(numResponses < seqLength) {
                     
@@ -267,29 +345,36 @@ public class JoeFlowSays extends JFrame{
             
             for (JButton b : buttons){ b.setEnabled(false);}
             
-            showResults(lightSeq, seqLength);
+            showResults(lightSeq, seqLength);                   //Compare the user responses with the generated light sequence
 
-            if(Arrays.equals(lightSeq, responses)){
+            if(Arrays.equals(lightSeq, responses)){             //Check if the user is correct
                 System.out.println("Correct!");
-                seqLength++;
-                numResponses = 0;
-                for(int i = 0; i<10; i++){responses[i] = 0;}
+                seqLength++;                                    //increase sequence length for the next level
+                numResponses = 0;                               //reset number of responses
+                for(int i = 0; i<10; i++){responses[i] = 0;}    //reset responses
             }
             else{
                 System.out.println("Wrong!");
-                stillWinning = false;
-                seqLength=1;
-                numResponses = 0;
-                for(int i = 0; i<10; i++){responses[i] = 0;}
+                stillWinning = false;                           //Set winning flag to false to exit game loop
+                seqLength=1;                                    //reset sequence length
+                numResponses = 0;                               //reset number of responses
+                for(int i = 0; i<10; i++){responses[i] = 0;}    //reset responses
             }
         }
    
-        if (!stillWinning){
-            showGameOverDialog();
+        if (!stillWinning){ 
+            showGameOverDialog();                               //If user lost, show game over dialog
         }
 
     }
     
+    /**
+     * Creates the help dialog using a JDialog instance, displays it in the
+     * middle of the window.
+     * <p>
+     * This JDialog instance has no header border, and therefore no system exit
+     * button. The exit button is a custom added JButton
+     */
     private void showHelpDialog(){
         helpContainer = new JDialog(this, "Help", true);
         
@@ -313,7 +398,7 @@ public class JoeFlowSays extends JFrame{
         
         helpContainer.setContentPane(helpPanel);
         helpContainer.setResizable(false);
-        helpContainer.setUndecorated(true);
+        helpContainer.setUndecorated(true); //removes the sytem border and exit button
         helpContainer.pack();
         helpContainer.setSize(300,100);
         helpContainer.setLocationRelativeTo(this);
@@ -321,6 +406,13 @@ public class JoeFlowSays extends JFrame{
         
     }
     
+    /**
+     * Creates the about dialog using a JDialog instance, displays it in the
+     * middle of the window.
+     * <p>
+     * This JDialog instance has no header border, and therefore no system exit
+     * button. The exit button is a custom added JButton
+     */
     private void showAboutDialog(){
         
         aboutContainer = new JDialog(this, "About", true);
@@ -345,7 +437,7 @@ public class JoeFlowSays extends JFrame{
         
         aboutContainer.setContentPane(aboutPanel);
         aboutContainer.setResizable(false);
-        aboutContainer.setUndecorated(true);
+        aboutContainer.setUndecorated(true); //removes the system border and exit button
         aboutContainer.pack();
         aboutContainer.setSize(300,100);
         aboutContainer.setLocationRelativeTo(this);
@@ -353,6 +445,16 @@ public class JoeFlowSays extends JFrame{
 
     }
     
+    /**
+     * Creates the game over dialog using a JOptionPane instance
+     * <p>
+     * This function sets up a JOptionPane instance with three choices:
+     * "Try Again", "Main Menu", and "Quit". Each button is registered to the same
+     * Action Listener interface implementation. The OptionPane is displayed in the
+     * middle of the window. It is a modal dialog, so no other actions are performed
+     * until one of the three choices are chosen. The exit operation will not close
+     * the dialog window.
+     */
     private void showGameOverDialog(){
         
         JButton[] Options = new JButton[3];
@@ -371,7 +473,7 @@ public class JoeFlowSays extends JFrame{
         Options[2].addActionListener(PCListener);
         makeCustomButton(Options[2], "/Images/Look and Feel/QuitUP.png", "/Images/Look and Feel/QuitP.png");
         
-        JPanel messagePanel = new JPanel(new BorderLayout());
+        JPanel messagePanel = new JPanel(new BorderLayout());   //This JPanel is used instead of text in the JOpionPane
         messagePanel.setOpaque(true);
         JLabel msg = new JLabel("That's not what I said! Try Again?", JLabel.CENTER);
         msg.setVerticalAlignment(SwingConstants.CENTER);
@@ -383,17 +485,23 @@ public class JoeFlowSays extends JFrame{
         
         gameOverContainer = new JDialog(this, "Joe Flow Says", true);
         gameOverContainer.setContentPane(gameOver);
-        gameOverContainer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         gameOverContainer.getContentPane().setBackground(Color.WHITE);
-        makeComponentsWhiteBG(gameOverContainer);
+        makeComponentsWhiteBG(gameOverContainer);               //Make background of dialog window white
+        
         gameOverContainer.pack();
         gameOverContainer.setLocationRelativeTo(this);
+        gameOverContainer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         gameOverContainer.setVisible(true);
-        
-        
-        
     }
     
+    /**
+     * Sets the background of every component in the specified container to white
+     * <p>
+     * Uses a recursive algorithm to ensure that containers within the specified
+     * container will also have all of their child component's backgrounds set
+     * to white as well.
+     * @param c     the Container object that can contain components, and other containers 
+     */
     private void makeComponentsWhiteBG(Container c){
         
         Component[] m = c.getComponents();
@@ -406,39 +514,56 @@ public class JoeFlowSays extends JFrame{
         }
     }
     
+    /**
+     * Shows the light sequence pattern that the user was supposed to replicate
+     * <p>
+     * 
+     * @param JoeFlowSeq    the int array representing the light sequence
+     * @param seqLen        the sequence length for the current level. This 
+     *                      parameter is necessary because the int array passed
+     *                      to this function is always of length 10.
+     */
     private void showResults(int[] JoeFlowSeq, int seqLen){
-        
-        try{ Thread.sleep(500);} catch (InterruptedException e) {};
-        
-        JLight[] userLights = new JLight[10];
-        JLight[] computerLights = new JLight[10];
         
         ImageIcon blank = new ImageIcon(getClass().getResource("/Images/Lights/BlankLight.jpg"));
 
-        
+        JLight[] userLights =       new JLight[10];
+        JLight[] computerLights =   new JLight[10];
+
         for(int j = 0; j < 10; j++){
-            
-            userLights[j] = (JLight) userSeq.getComponent(j);
-            computerLights[j] = (JLight) computerSeq.getComponent(j);
+            //Retrieve the JLight objects from the user and computer panels in the
+            //results table and assign them to two arrays
+            userLights[j] =         (JLight) userSeq.getComponent(j);
+            computerLights[j] =     (JLight) computerSeq.getComponent(j);
         }
+        
+        try{ Thread.sleep(500);} catch (InterruptedException e) {};
         
         for(int m = 0; m < seqLen; m++){
             
-            computerLights[m].lightUpDiff(thumbs[JoeFlowSeq[m]]);
-            
+            computerLights[m].lightUpDiff(thumbs[JoeFlowSeq[m]]);           //light up each light in the computer row of the
+                                                                            //results table with the corresponding colour in
+                                                                            //the given sequence
             pane.validate();
-            
-            try{ Thread.sleep(600);} catch (InterruptedException e) {};
+            try{ Thread.sleep(500);} catch (InterruptedException e) {};     //0.5 seconds in between each light up
         }
 
         try{ Thread.sleep(1000);} catch (InterruptedException e) {};
-        
+        /*  wait 1 second, and then make the user results sequence and the computer
+            results sequence blank in the following for loop
+        */
         for(int n = 0; n < seqLen; n++){
             userLights[n].makeBlank();
             computerLights[n].makeBlank();
         }
     }
-        
+    
+    /**
+     * Returns a JPanel containing the row of Lights, made using custom component JLight.
+     * 
+     * @return  the JPanel which contains the row of lights to be used in the game panel
+     * @see JLight
+     */
     private JPanel setUpLightsRow() {
         
         JPanel outerPanel = new JPanel();
@@ -483,55 +608,81 @@ public class JoeFlowSays extends JFrame{
         return outerPanel;
     }
     
+    /**
+     * Returns a JPanel containing the row of JButtons, and keyboard shortcut indicators
+     * 
+     * @return  the JPanel which contains the row of JButtons to be used in the game panel
+     */
     private JPanel setUpButtonsRow() {
         
         JPanel buttRow = new JPanel();
         buttRow.setOpaque(false);
-        buttRow.setLayout(new GridLayout(2, 5));
+        buttRow.setLayout(new GridLayout(2, 5)); //Grid layout with 2 rows and 5 columns
         
-        Action buttListen = new ButtonAction();
+        Action buttListen = new ButtonAction(); //Common Action Listener for all the buttons
         
         JButton[] buttons = new JButton[5];
         
+        //Red Button
         buttons[0] = new JButton();
-        buttons[0].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('c'), "Anything1");
+        buttons[0].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke('c'), "Anything1");      //Map to C button
         buttons[0].getActionMap().put("Anything1", buttListen);
-        makeCustomButton(buttons[0], "/Images/Look and Feel/redButtonUnpressed.png", "/Images/Look and Feel/redButtonPressed.png");
+        makeCustomButton(buttons[0], "/Images/Look and Feel/redButtonUnpressed.png",
+                "/Images/Look and Feel/redButtonPressed.png");
+        
         buttons[0].setName("Red");
         
+        //Blue Button
         buttons[1] = new JButton();
-        buttons[1].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('v'), "Anything2");
+        buttons[1].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke('v'), "Anything2");      //Map to V button     
         buttons[1].getActionMap().put("Anything2", buttListen);
-        makeCustomButton(buttons[1], "/Images/Look and Feel/blueButtonUnpressed.png", "/Images/Look and Feel/blueButtonPressed.png");
+        makeCustomButton(buttons[1], "/Images/Look and Feel/blueButtonUnpressed.png",
+                "/Images/Look and Feel/blueButtonPressed.png");
+        
         buttons[1].setName("Blue");
         
+        //Green Button
         buttons[2] = new JButton();
-        buttons[2].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('b'), "Anything3");
+        buttons[2].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke('b'), "Anything3");      //Map to B button
         buttons[2].getActionMap().put("Anything3", buttListen);
-        makeCustomButton(buttons[2], "/Images/Look and Feel/greenButtonUnpressed.png", "/Images/Look and Feel/greenButtonPressed.png");
+        makeCustomButton(buttons[2], "/Images/Look and Feel/greenButtonUnpressed.png",
+                "/Images/Look and Feel/greenButtonPressed.png");
+        
         buttons[2].setName("Green");
         
+        //Yellow Button
         buttons[3] = new JButton();
-        buttons[3].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('n'), "Anything4");
+        buttons[3].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke('n'), "Anything4");      //Map to N button
         buttons[3].getActionMap().put("Anything4", buttListen);
-        makeCustomButton(buttons[3], "/Images/Look and Feel/yellowButtonUnpressed.png", "/Images/Look and Feel/yellowButtonPressed.png");
+        makeCustomButton(buttons[3], "/Images/Look and Feel/yellowButtonUnpressed.png",
+                "/Images/Look and Feel/yellowButtonPressed.png");
+        
         buttons[3].setName("Yellow");
         
+        //Orange Button
         buttons[4] = new JButton();
-        buttons[4].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('m'), "Anything5");
+        buttons[4].getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke('m'), "Anything5");      //Map to M button
         buttons[4].getActionMap().put("Anything5", buttListen);
-        makeCustomButton(buttons[4], "/Images/Look and Feel/orangeButtonUnpressed.png", "/Images/Look and Feel/orangeButtonPressed.png");
+        makeCustomButton(buttons[4], "/Images/Look and Feel/orangeButtonUnpressed.png",
+                "/Images/Look and Feel/orangeButtonPressed.png");
+        
         buttons[4].setName("Orange");
         
         
-        
+        //Add the buttons to the first row of the button Panel
         for(int i = 0; i < 5; i++) {
-            buttRow.add(buttons[i]);
-            buttons[i].addActionListener(buttListen);
-            buttons[i].setEnabled(false);
             
+            buttRow.add(buttons[i]);
+            buttons[i].addActionListener(buttListen);   //Assign the action listener
+            buttons[i].setEnabled(false);               //default set to enabled
         }
         
+        //ImageIcons to show the keyboard buttons which can be used to play the game
         ImageIcon CKey = new ImageIcon(getClass().getResource("/Images/Keyboard Shortcuts/c.png"));
         ImageIcon VKey = new ImageIcon(getClass().getResource("/Images/Keyboard Shortcuts/v.png"));
         ImageIcon BKey = new ImageIcon(getClass().getResource("/Images/Keyboard Shortcuts/b.png"));
@@ -546,6 +697,7 @@ public class JoeFlowSays extends JFrame{
         buttKeyLabels[3] = new JLabel(NKey);
         buttKeyLabels[4] = new JLabel(MKey);
         
+        //Add the keyboard button image icons to the second row of the button Panel
         for(int ii = 0; ii < 5; ii++){
             buttRow.add(buttKeyLabels[ii]);
         }
@@ -553,35 +705,57 @@ public class JoeFlowSays extends JFrame{
         return buttRow;
     }
     
+    /**
+     * Returns a JPanel containing the results table, made using custom component JLights.
+     * <p>
+     * The results table is composed of multiple nested containers. The parent container,
+     * the one that is returned by the function, is called <code>resultsPanel</code>.
+     * The hierarchy is as follows:
+     * <code>resultsPanel
+     *          -computerSeqBox (JPanel)
+     *              -computerTitle (JLabel)
+     *              -computerSeq (JPanel)
+     *                  -10 x blank JLights (JLight
+     *          -userSeqBox (JPanel)
+     *              -userTitle (JLabel)
+     *              -userSeq (JPanel)
+     *                  -10 x blank JLights (JLight)
+     * </code>
+     * 
+     * @return  the JPanel which contains the results table to be used in the game panel
+     */
     private JPanel setUpResultsPanel(){
         
         JPanel resultsPanel = new JPanel();
         resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS));
-        setAbsoluteSize(resultsPanel, 620, 140);
+        setAbsoluteSize(resultsPanel, 650, 140);
         resultsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         resultsPanel.setOpaque(false);
         
         JPanel computerSeqBox = new JPanel();
         computerSeqBox.setLayout(new BoxLayout(computerSeqBox,BoxLayout.X_AXIS));
         computerSeqBox.setBorder(new LineBorder(Color.BLACK, 1));
-        setAbsoluteSize(computerSeqBox, 620, 55);
+        setAbsoluteSize(computerSeqBox, 650, 55);
         computerSeqBox.setBackground(Color.WHITE);
 
         JLabel computerTitle = new JLabel("Joe Flow Says:");
-        computerTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        computerTitle.setFont(gameFonts("Gameplay", 12f));
+        computerTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);         //Align text with right edge
         computerSeqBox.add(computerTitle);
         computerSeqBox.add(new JSeparator(SwingConstants.VERTICAL));
-        
         
         JPanel userSeqBox = new JPanel();
         userSeqBox.setLayout(new BoxLayout(userSeqBox,BoxLayout.X_AXIS));
         userSeqBox.setBorder(new LineBorder(Color.BLACK, 1));
-        setAbsoluteSize(userSeqBox, 620, 55);
+        setAbsoluteSize(userSeqBox, 650, 55);
         userSeqBox.setBackground(Color.WHITE);
         
         JLabel userTitle = new JLabel("You Say:");
-        userTitle.setPreferredSize(new Dimension(computerTitle.getPreferredSize().width, computerTitle.getPreferredSize().height));
-        userTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        userTitle.setFont(gameFonts("Gameplay",12f));
+        userTitle.setPreferredSize(new Dimension(                       //Make the width of the User Row Title
+                computerTitle.getPreferredSize().width,                 // the same as the Computer Row Title            
+                computerTitle.getPreferredSize().height));
+        userTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);             //Align text with right edge
         userTitle.setHorizontalAlignment(SwingConstants.RIGHT);
         userSeqBox.add(userTitle);
         userSeqBox.add(new JSeparator(SwingConstants.VERTICAL));
@@ -596,8 +770,8 @@ public class JoeFlowSays extends JFrame{
         
         for(int i = 0; i < 10; i++){
 
-            userSeq.add(new JLight(blank));
-            computerSeq.add(new JLight(blank));
+            userSeq.add(new JLight(thumbs[1]));
+            computerSeq.add(new JLight(thumbs[1]));
         }
         
         userSeqBox.add(userSeq);
@@ -606,18 +780,29 @@ public class JoeFlowSays extends JFrame{
         resultsPanel.add(userSeqBox);
         resultsPanel.add(computerSeqBox);
         resultsPanel.setBorder(BorderFactory.createTitledBorder(new EtchedBorder(EtchedBorder.LOWERED),
-                "Results", TitledBorder.LEFT, TitledBorder.LEFT, new Font("results Font", Font.BOLD, 15),
+                "Results", TitledBorder.LEFT, TitledBorder.LEFT, gameFonts("Gameplay",20f),
                 Color.WHITE));
         
         return resultsPanel;
     }
     
+    /**
+     * Lights up a random Jlight in the lights panel every 850ms a specific number of times
+     * <p>
+     * This function uses a random integer generating function to light up one of the five
+     * JLights in the lights panel for 500ms, and then light up another one 350ms later,
+     * repeating this process for the number of times specified.
+     * @param numTimes      Number of times a JLight will be lit up
+     * @param lightsUse     An array of the 5 JLights in the lights panel
+     * @return              the sequence that was lit up is returned in an int array
+     * @see randomInteger
+     */
     private int[] lightUp(int numTimes, JLight[] lightsUse) {
-        int[] Seq = new int[10];
-        String holdText;
-        String lightUpIcon = "";
         
+        int[] Seq = new int[10];
+
         for (int i = 0; i < numTimes; i++){
+            
             Seq[i] = randomInteger(0,4);
             
             try{ Thread.sleep(350);} catch (InterruptedException e) {};
@@ -627,13 +812,21 @@ public class JoeFlowSays extends JFrame{
             try{ Thread.sleep(500);} catch (InterruptedException e) {};
                 
             lightsUse[Seq[i]].lightOff();
-            
-            
         }
 
         return Seq;
     }
     
+    /**
+     * Sets the minimumSize, maximumSize, preferredSize, and current Size of a
+     * specified JComponent to the same width and height.
+     * <p>
+     * This function is used to overcome some limitations and undesired resizing
+     * of components found in some of the UI layout managers.
+     * @param comp      the JComponent to be resized
+     * @param width     the desired width of the component; an integer
+     * @param height    the desired height of the component; an integer
+     */
     private void setAbsoluteSize(JComponent comp, int width, int height){
         Dimension d = new Dimension(width, height);
         
@@ -642,17 +835,36 @@ public class JoeFlowSays extends JFrame{
         comp.setMaximumSize(d);
     }
     
+    /**
+     * Customizes an existing JButton using custom graphics for the pressed and
+     * unpressed states
+     * 
+     * @param butt          the JButton to customize
+     * @param unpressed     the path and filename of the unpressed button image.
+     *                      Must be found within the local class directory
+     * @param pressed       the path and filename of the pressed button image.
+     *                      Must be found within the local class directory
+     */
     private void makeCustomButton(JButton butt, String unpressed, String pressed){
         butt.setIcon(new ImageIcon(getClass().getResource(unpressed)));
         butt.setPressedIcon(new ImageIcon(getClass().getResource(pressed)));
         butt.setDisabledIcon(new ImageIcon(getClass().getResource(unpressed)));
-        butt.setOpaque(false);
-        butt.setContentAreaFilled(false);
+        butt.setOpaque(false);              //let unpainted areas of button show
+                                            //the image below it
+        butt.setContentAreaFilled(false);   //do not paint the entire JButton background
         butt.setBorderPainted(false);
         butt.setFocusPainted(false);
     }
     
-    public int randomInteger(int min, int max) {
+    /**
+     * Generates and returns a pseudorandom integer within the specified range
+     * 
+     * @param min   the smallest integer that could be generated, inclusive
+     * @param max   the largest integer that could be generated, inclusive
+     * @return      a random integer between <param>min</param> and <param>max</param>
+     * @see java.util.Random
+     */
+    private int randomInteger(int min, int max) {
 
     Random rand = new Random();
 
@@ -662,6 +874,47 @@ public class JoeFlowSays extends JFrame{
     return randomNum;
     }
     
+    /**
+     * Returns a Font object with the specified font type and size
+     * 
+     * @param type  A String that can be either "Karmatic Arcade" or "Gameplay"
+     * @param size  A float representation of the desired font size
+     * @return      The Font object
+     */
+    private Font gameFonts(String type, float size){
+        
+        Font daFont;
+        
+        if("Karmatic Arcade".equals(type)){
+            
+            try{
+                daFont = Font.createFont(Font.TRUETYPE_FONT,
+                        new File(getClass().getResource("/Images/Look and Feel/ka1.ttf").toURI()));
+            } catch(IOException | URISyntaxException | FontFormatException f){
+                daFont = new Font("Arial", Font.PLAIN, 24);}    //default to Arial Size 24
+            
+            return daFont.deriveFont(size);
+        }
+        else if("Gameplay".equals(type)){
+            
+            try{
+                daFont = Font.createFont(Font.TRUETYPE_FONT,
+                        new File(getClass().getResource("/Images/Look and Feel/Gameplay.ttf").toURI()));
+            } catch(IOException | URISyntaxException | FontFormatException f){
+                daFont = new Font("Arial", Font.PLAIN, 24);}    //default to Arial Size 24   
+            
+            return daFont.deriveFont(size);
+            
+        }
+        else{
+            return new Font("Arial", Font.PLAIN, 24);          //default to Arial Size 24
+        }
+    }
+    
+    /**
+     * Implements the ActionListener interface and controls content pane related
+     * layout changes corresponding to various buttons throughout the game
+     */
     private class PanelChangeListener implements ActionListener {
         
         @Override
@@ -674,32 +927,33 @@ public class JoeFlowSays extends JFrame{
                     public void run(){
                         startGame();
                     }
-                };
+                };      //Runnable object initiates the startGame function
             Runnable start = new Runnable(){
                     @Override
                     public void run(){
                         initUI();
                     }
-                };
+                };     //Runnable object initiates the initUI function
             
+            //Action performed is dependent on which button click initiated the call to the interface
             if(null!= buttonName) switch (buttonName){
                 case "Start":
-                    try{adjustVolume(gameMusic,10);} catch(InvalidMidiDataException u){}
-                    new Thread(game).start();
+                    try{adjustVolume(gameMusic,10);} catch(InvalidMidiDataException u){} //Decrease volume before game starts
+                    new Thread(game).start();                                            //Start new thread to run game
                     break;
                 case "Try Again":
-                    pane.removeAll();
-                    gameOverContainer.setVisible(false);
-                    new Thread(game).start();
+                    pane.removeAll();                                                   
+                    gameOverContainer.setVisible(false);    
+                    new Thread(game).start();                                           //Start mew thread tp run game
                     break;
                 case "Main Menu":
                     pane.removeAll();
                     gameOverContainer.setVisible(false);
-                    new Thread(start).start();
+                    new Thread(start).start();                                         //Restart game in new thread
                     break;
                 case "Quit":
                     gameOverContainer.setVisible(false);
-                    System.exit(0);
+                    System.exit(0);                                                   //Exit game
                     break;
                 case "About":
                     showAboutDialog();
@@ -717,14 +971,24 @@ public class JoeFlowSays extends JFrame{
         }
     }
     
+    /**
+     * Action Listener class responsible for gameplay related button events
+     * <p>
+     * When this action listener is called, the actionPerformed function will
+     * light up the appropriate JLight thumbnail in the user Results Sequence,
+     * update the global "responses" variable, increment the number of total
+     * responses in the global "numResponses" variable, and notify the LOCK
+     * object in order to check the while loop condition in the startGame function
+     * again
+     */
     private class ButtonAction extends AbstractAction{
         
         @Override
         public void actionPerformed(ActionEvent e){
             
-            JLight currLight = (JLight) userSeq.getComponent(numResponses);
+            JLight currLight = (JLight) userSeq.getComponent(numResponses);     //numResponses would be the next blank light
             JButton buttonPressed = (JButton) e.getSource();
-            String buttonName = buttonPressed.getName();
+            String buttonName = buttonPressed.getName();                        //Get the name of the button pressed
             
             if(null != buttonName)switch (buttonName) {
                 case "Red":
@@ -755,6 +1019,9 @@ public class JoeFlowSays extends JFrame{
         }
     }
     
+    /**
+     * Class which extends JLabel
+     */
     private class JLight  extends JLabel {
 
         private final ImageIcon poff;
@@ -825,14 +1092,8 @@ public class JoeFlowSays extends JFrame{
             txt = initText;
             
             displayText = new JLabel(txt);
-            Font msgFont;
-            try{
-                msgFont = Font.createFont(Font.TRUETYPE_FONT,
-                        new File(getClass().getResource("/Images/Look and Feel/ka1.ttf").toURI()));
-            } catch(IOException | URISyntaxException | FontFormatException f){
-                msgFont = new Font("Arial", Font.PLAIN, 35);}
 
-            displayText.setFont(msgFont.deriveFont(35f));
+            displayText.setFont(gameFonts("Karmatic Arcade", 35f));
             displayText.setForeground(Color.WHITE);
             displayText.setAlignmentX(Component.CENTER_ALIGNMENT);
             
