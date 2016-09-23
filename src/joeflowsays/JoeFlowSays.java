@@ -770,8 +770,8 @@ public class JoeFlowSays extends JFrame{
         
         for(int i = 0; i < 10; i++){
 
-            userSeq.add(new JLight(thumbs[1]));
-            computerSeq.add(new JLight(thumbs[1]));
+            userSeq.add(new JLight(blank));
+            computerSeq.add(new JLight(blank));
         }
         
         userSeqBox.add(userSeq);
