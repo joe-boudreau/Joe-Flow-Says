@@ -70,7 +70,7 @@ import javax.sound.midi.Track;
 
 
 /**
- * @author      Joseph Boudreau <thejoeflow@gmail.com>
+ * @author      Joseph Boudreau <a href="mailto:thejoeflow@gmail.com">thejoeflow@gmail.com</a>
  * @version     1.0 
  */
 public class JoeFlowSays extends JFrame{
@@ -89,12 +89,15 @@ public class JoeFlowSays extends JFrame{
     private JDialog         aboutContainer;
     private Sequencer       player;
     private Sequence        gameMusic;
+    private boolean         musicOn = false;
     
     //Initialize some global variables
     private ImageIcon JoeIcon =                 new ImageIcon(getClass().getResource("/Images/Look and Feel/GameOverIcon.png"));
     private PanelChangeListener PCListener =    new PanelChangeListener();
     Object LOCK =                               new Object();
-    
+    /**
+     * Constructor method runs the separate initializer function
+     */
     public JoeFlowSays() {
         
         initUI();
@@ -106,25 +109,27 @@ public class JoeFlowSays extends JFrame{
      * and the look and feel of the window. Imports the game light thumbnails
      * as well
      */
-    private void initUI() {
+    public void initUI() {
 
         pane = getContentPane(); 
         startPanel = getStartPanel();
-        
-        int randSong = randomInteger(1,3); //choose random song to play
-        try{
+
+        if (!musicOn){
+            try{
             //Set up MidiSystem Midi Sequence player
-            gameMusic = MidiSystem.getSequence(getClass().getResource("/Sound/" +Integer.toString(randSong)+".mid"));
+            gameMusic = MidiSystem.getSequence(getClass().getResource("/Sound/1.mid"));
             player = MidiSystem.getSequencer();
             player.setSequence(gameMusic);
             player.open();
             player.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
-            
-            adjustVolume(gameMusic, 35);                //Adjust Volume
             player.start();
+            musicOn = true;
         }
         catch(InvalidMidiDataException | IOException | MidiUnavailableException u){}
+        }
         
+        try{ adjustVolume(gameMusic, 35);}
+        catch(InvalidMidiDataException i){}
         
         
         BufferedImage JFlowIcon = null;
@@ -168,7 +173,7 @@ public class JoeFlowSays extends JFrame{
      * @param volume    the volume level that the tracks will be set to, integer between 0-127
      * @throws InvalidMidiDataException 
      */
-    private void adjustVolume(Sequence musicSeq, int volume) throws InvalidMidiDataException{
+    public void adjustVolume(Sequence musicSeq, int volume) throws InvalidMidiDataException{
         Track[] tracks = musicSeq.getTracks();
             for (Track t : tracks){
                 for(int channel = 0; channel < 16; channel++){
@@ -188,7 +193,7 @@ public class JoeFlowSays extends JFrame{
      * 
      * @return the JToolBar to use at the top of the game content pane
      */
-    private JToolBar getToolBar(){
+    public JToolBar getToolBar(){
         JToolBar menuBar = new JToolBar();
         menuBar.setLayout(new BoxLayout(menuBar, BoxLayout.X_AXIS));
         
@@ -221,7 +226,7 @@ public class JoeFlowSays extends JFrame{
      * @return the JGamePanel object to be used as the start panel
      * @see JGamePanel
      */
-    private JGamePanel getStartPanel() {
+    public JGamePanel getStartPanel() {
         
         JGamePanel sP = new JGamePanel("/Images/Look and Feel/backgroundMain.jpg");
         BoxLayout bl = new BoxLayout(sP, BoxLayout.Y_AXIS);
@@ -250,7 +255,7 @@ public class JoeFlowSays extends JFrame{
      * @see #PCListener
      * 
      */
-    private void startGame() {
+    public void startGame() {
         
         gamePanel = new JGamePanel("/Images/Look and Feel/backgroundGame.jpg"); 
         gamePanel.setLayout(new BoxLayout(gamePanel, BoxLayout.Y_AXIS));
@@ -375,7 +380,7 @@ public class JoeFlowSays extends JFrame{
      * This JDialog instance has no header border, and therefore no system exit
      * button. The exit button is a custom added JButton
      */
-    private void showHelpDialog(){
+    public void showHelpDialog(){
         helpContainer = new JDialog(this, "Help", true);
         
         JPanel helpPanel = new JPanel();
@@ -413,7 +418,7 @@ public class JoeFlowSays extends JFrame{
      * This JDialog instance has no header border, and therefore no system exit
      * button. The exit button is a custom added JButton
      */
-    private void showAboutDialog(){
+    public void showAboutDialog(){
         
         aboutContainer = new JDialog(this, "About", true);
         
@@ -455,7 +460,7 @@ public class JoeFlowSays extends JFrame{
      * until one of the three choices are chosen. The exit operation will not close
      * the dialog window.
      */
-    private void showGameOverDialog(){
+    public void showGameOverDialog(){
         
         JButton[] Options = new JButton[3];
         Options[0] = new JButton();
@@ -502,7 +507,7 @@ public class JoeFlowSays extends JFrame{
      * to white as well.
      * @param c     the Container object that can contain components, and other containers 
      */
-    private void makeComponentsWhiteBG(Container c){
+    public void makeComponentsWhiteBG(Container c){
         
         Component[] m = c.getComponents();
 
@@ -523,7 +528,7 @@ public class JoeFlowSays extends JFrame{
      *                      parameter is necessary because the int array passed
      *                      to this function is always of length 10.
      */
-    private void showResults(int[] JoeFlowSeq, int seqLen){
+    public void showResults(int[] JoeFlowSeq, int seqLen){
         
         ImageIcon blank = new ImageIcon(getClass().getResource("/Images/Lights/BlankLight.jpg"));
 
@@ -564,7 +569,7 @@ public class JoeFlowSays extends JFrame{
      * @return  the JPanel which contains the row of lights to be used in the game panel
      * @see JLight
      */
-    private JPanel setUpLightsRow() {
+    public JPanel setUpLightsRow() {
         
         JPanel outerPanel = new JPanel();
         JPanel lightPanel = new JPanel();
@@ -613,7 +618,7 @@ public class JoeFlowSays extends JFrame{
      * 
      * @return  the JPanel which contains the row of JButtons to be used in the game panel
      */
-    private JPanel setUpButtonsRow() {
+    public JPanel setUpButtonsRow() {
         
         JPanel buttRow = new JPanel();
         buttRow.setOpaque(false);
@@ -724,7 +729,7 @@ public class JoeFlowSays extends JFrame{
      * 
      * @return  the JPanel which contains the results table to be used in the game panel
      */
-    private JPanel setUpResultsPanel(){
+    public JPanel setUpResultsPanel(){
         
         JPanel resultsPanel = new JPanel();
         resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.PAGE_AXIS));
@@ -797,7 +802,7 @@ public class JoeFlowSays extends JFrame{
      * @return              the sequence that was lit up is returned in an int array
      * @see randomInteger
      */
-    private int[] lightUp(int numTimes, JLight[] lightsUse) {
+    public int[] lightUp(int numTimes, JLight[] lightsUse) {
         
         int[] Seq = new int[10];
 
@@ -827,7 +832,7 @@ public class JoeFlowSays extends JFrame{
      * @param width     the desired width of the component; an integer
      * @param height    the desired height of the component; an integer
      */
-    private void setAbsoluteSize(JComponent comp, int width, int height){
+    public void setAbsoluteSize(JComponent comp, int width, int height){
         Dimension d = new Dimension(width, height);
         
         comp.setPreferredSize(d);
@@ -845,7 +850,7 @@ public class JoeFlowSays extends JFrame{
      * @param pressed       the path and filename of the pressed button image.
      *                      Must be found within the local class directory
      */
-    private void makeCustomButton(JButton butt, String unpressed, String pressed){
+    public void makeCustomButton(JButton butt, String unpressed, String pressed){
         butt.setIcon(new ImageIcon(getClass().getResource(unpressed)));
         butt.setPressedIcon(new ImageIcon(getClass().getResource(pressed)));
         butt.setDisabledIcon(new ImageIcon(getClass().getResource(unpressed)));
@@ -861,10 +866,10 @@ public class JoeFlowSays extends JFrame{
      * 
      * @param min   the smallest integer that could be generated, inclusive
      * @param max   the largest integer that could be generated, inclusive
-     * @return      a random integer between <param>min</param> and <param>max</param>
+     * @return      a random integer between min and max
      * @see java.util.Random
      */
-    private int randomInteger(int min, int max) {
+    public int randomInteger(int min, int max) {
 
     Random rand = new Random();
 
@@ -881,7 +886,7 @@ public class JoeFlowSays extends JFrame{
      * @param size  A float representation of the desired font size
      * @return      The Font object
      */
-    private Font gameFonts(String type, float size){
+    public Font gameFonts(String type, float size){
         
         Font daFont;
         
@@ -915,7 +920,7 @@ public class JoeFlowSays extends JFrame{
      * Implements the ActionListener interface and controls content pane related
      * layout changes corresponding to various buttons throughout the game
      */
-    private class PanelChangeListener implements ActionListener {
+    public class PanelChangeListener implements ActionListener {
         
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -981,7 +986,7 @@ public class JoeFlowSays extends JFrame{
      * object in order to check the while loop condition in the startGame function
      * again
      */
-    private class ButtonAction extends AbstractAction{
+    public class ButtonAction extends AbstractAction{
         
         @Override
         public void actionPerformed(ActionEvent e){
@@ -1024,7 +1029,7 @@ public class JoeFlowSays extends JFrame{
      * icon which can be a certain colour, and can be lit up or turned off
      * 
      */
-    private class JLight  extends JLabel {
+    public class JLight  extends JLabel {
 
         private final ImageIcon poff;
         private final ImageIcon pon;
@@ -1068,7 +1073,7 @@ public class JoeFlowSays extends JFrame{
      * paintComponent method in order to use a custom image background that is
      * given as a filepath in the input parameters
      */
-    private class JGamePanel extends JPanel{
+    public class JGamePanel extends JPanel{
         
         private String filePath;
         
@@ -1095,7 +1100,7 @@ public class JoeFlowSays extends JFrame{
      * It includes public methods to show and remove text, and to display a timed
      * countdown before each level begins.
      */
-    private class MsgPanel extends JPanel {
+    public class MsgPanel extends JPanel {
         
         String txt;
         JLabel displayText;
