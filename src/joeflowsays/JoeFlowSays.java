@@ -4,7 +4,7 @@ package joeflowsays;
 |   Joe Flow Says
 |   A simple memory-based game devloped by Joe Boudreau between June 2016 and
 |   September 2016. Using Java Swing libraries, the purpose of the game is to
-|   showcase various UI attributes, including custom-designed graphic components
+|   showcase various UI attributes, including custom-designed graphic components,
 |   parallel event-driven outputs, and audio-visual feedback. 
 |   
 |   Version: 1.0
@@ -120,7 +120,7 @@ public class JoeFlowSays extends JFrame{
             player.open();
             player.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
             
-            adjustVolume(gameMusic, 30);                //Adjust Volume
+            adjustVolume(gameMusic, 35);                //Adjust Volume
             player.start();
         }
         catch(InvalidMidiDataException | IOException | MidiUnavailableException u){}
@@ -938,7 +938,7 @@ public class JoeFlowSays extends JFrame{
             //Action performed is dependent on which button click initiated the call to the interface
             if(null!= buttonName) switch (buttonName){
                 case "Start":
-                    try{adjustVolume(gameMusic,10);} catch(InvalidMidiDataException u){} //Decrease volume before game starts
+                    try{adjustVolume(gameMusic,15);} catch(InvalidMidiDataException u){} //Decrease volume before game starts
                     new Thread(game).start();                                            //Start new thread to run game
                     break;
                 case "Try Again":
@@ -1020,7 +1020,9 @@ public class JoeFlowSays extends JFrame{
     }
     
     /**
-     * Class which extends JLabel
+     * Class which extends JLabel, used in the game to display a dynamic light
+     * icon which can be a certain colour, and can be lit up or turned off
+     * 
      */
     private class JLight  extends JLabel {
 
@@ -1035,10 +1037,10 @@ public class JoeFlowSays extends JFrame{
             setIcon(poff);
         }
         
-        public JLight(ImageIcon neither){
-            
-            poff = neither;
-            pon = neither;
+        public JLight(ImageIcon neither){ //this constructor is used to make
+                                          //placeholder JLights using a blank
+            poff = neither;               //ImageIcon of the same dimensions
+            pon = neither;                //as the the regular JLight icons
             pblank = neither;
             setIcon(neither);
         }
@@ -1061,6 +1063,11 @@ public class JoeFlowSays extends JFrame{
         }
     }
     
+    /**
+     * JGamePanel is an extension of JPanel that overrides the internal 
+     * paintComponent method in order to use a custom image background that is
+     * given as a filepath in the input parameters
+     */
     private class JGamePanel extends JPanel{
         
         private String filePath;
@@ -1083,6 +1090,11 @@ public class JoeFlowSays extends JFrame{
         }
     }
    
+    /**
+     * MsgPanel manages the top-most information panel in the main game pane.
+     * It includes public methods to show and remove text, and to display a timed
+     * countdown before each level begins.
+     */
     private class MsgPanel extends JPanel {
         
         String txt;
@@ -1099,15 +1111,22 @@ public class JoeFlowSays extends JFrame{
             
             this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             this.setAlignmentX(Component.CENTER_ALIGNMENT);
-            this.setOpaque(false);
+            this.setOpaque(false);                      //allow background to show
             
             setUpVisual();
         }
         
+        /*The following method ensures the MsgPanel instance does not collapse
+        and change the layout appearance by reducing the size to zero when
+        all the components are removed. A Box object with the same dimensions
+        as the panel before the components were removed is added to hold the
+        MsgPanel size.
+        */
         public void removeText(){
             Dimension dim = this.getSize();
             this.removeAll();
-            this.add(Box.createRigidArea(dim));
+
+            this.add(Box.createRigidArea(dim));        
             displayText.setText("");
         }
         
@@ -1118,6 +1137,7 @@ public class JoeFlowSays extends JFrame{
             this.validate();
         }
         
+        //Display a 3,2,1 countdown with set intervals
         public void countDown(){
             setUpVisual();
             this.validate();
@@ -1132,7 +1152,9 @@ public class JoeFlowSays extends JFrame{
             this.validate();
             
         }
-        
+        /*This method ensures the text is always displayed in the same area
+        through the use of vertical struts
+        */  
         private void setUpVisual(){
             
             this.removeAll();
@@ -1148,6 +1170,11 @@ public class JoeFlowSays extends JFrame{
         
     }
     
+    /**
+     * Java file main function. Invokes a new Runnable object which instantiates
+     * an instance of the JoeFlowSays class.
+     * @param args 
+     */
     public static void main(String[] args) {
         
         
