@@ -67,6 +67,9 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.AudioInputStream;
 
 
 /**
@@ -114,22 +117,18 @@ public class JoeFlowSays extends JFrame{
         pane = getContentPane(); 
         startPanel = getStartPanel();
 
-        if (!musicOn){
-            try{
-            //Set up MidiSystem Midi Sequence player
-            gameMusic = MidiSystem.getSequence(getClass().getResource("/Sound/1.mid"));
-            player = MidiSystem.getSequencer();
-            player.setSequence(gameMusic);
-            player.open();
-            player.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
-            player.start();
-            musicOn = true;
+        try{
+        //Set up MidiSystem Midi Sequence player
+        gameMusic = MidiSystem.getSequence(getClass().getResource("/Sound/ThemeMusic.mid"));
+        player = MidiSystem.getSequencer();
+        player.setSequence(gameMusic);
+        player.open();
+        player.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
+        adjustVolume(gameMusic, 35);
+        player.start();
         }
         catch(InvalidMidiDataException | IOException | MidiUnavailableException u){}
-        }
-        
-        try{ adjustVolume(gameMusic, 35);}
-        catch(InvalidMidiDataException i){}
+
         
         
         BufferedImage JFlowIcon = null;
@@ -145,6 +144,7 @@ public class JoeFlowSays extends JFrame{
         setLocationByPlatform(false);                   //Opens in top-left corner of screen
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setIconImage(JFlowIcon);
+        try{ Thread.currentThread().sleep(2000);} catch (InterruptedException e) {};
         this.setVisible(true);                          //Opens JFrame
         
         JToolBar topMenuBar = getToolBar();
@@ -354,12 +354,14 @@ public class JoeFlowSays extends JFrame{
 
             if(Arrays.equals(lightSeq, responses)){             //Check if the user is correct
                 System.out.println("Correct!");
+                playSound("Correct");
                 seqLength++;                                    //increase sequence length for the next level
                 numResponses = 0;                               //reset number of responses
                 for(int i = 0; i<10; i++){responses[i] = 0;}    //reset responses
             }
             else{
                 System.out.println("Wrong!");
+                playSound("Incorrect");
                 stillWinning = false;                           //Set winning flag to false to exit game loop
                 seqLength=1;                                    //reset sequence length
                 numResponses = 0;                               //reset number of responses
@@ -813,13 +815,48 @@ public class JoeFlowSays extends JFrame{
             try{ Thread.sleep(350);} catch (InterruptedException e) {};
             
             lightsUse[Seq[i]].lightUp();
-           
+            switch(Seq[i]){
+                case 0:
+                    playSound("Red");
+                    break;
+                case 1:
+                    playSound("Blue");
+                    break;
+                case 2:
+                    playSound("Green");
+                    break;
+                case 3:
+                    playSound("Yellow");
+                    break;
+                case 4:
+                    playSound("Orange");
+                    break;
+            }
             try{ Thread.sleep(500);} catch (InterruptedException e) {};
                 
             lightsUse[Seq[i]].lightOff();
         }
 
         return Seq;
+    }
+    
+    public static synchronized void playSound(final String Colour) {
+        
+        
+        new Thread(new Runnable() {
+        public void run() {
+          try {
+            Clip clip = AudioSystem.getClip();
+            AudioInputStream inputStream = AudioSystem.getAudioInputStream(
+            new File(getClass().getResource("/Sound/"+Colour+"Sound.wav").toURI()));
+            clip.open(inputStream);
+            clip.start(); 
+          } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.out.println("fucked up");
+          }
+        }
+      }).start();
     }
     
     /**
@@ -943,11 +980,10 @@ public class JoeFlowSays extends JFrame{
             //Action performed is dependent on which button click initiated the call to the interface
             if(null!= buttonName) switch (buttonName){
                 case "Start":
-                    try{adjustVolume(gameMusic,15);} catch(InvalidMidiDataException u){} //Decrease volume before game starts
+                    player.stop();
                     new Thread(game).start();                                            //Start new thread to run game
                     break;
-                case "Try Again":
-                    pane.removeAll();                                                   
+                case "Try Again":                                                 
                     gameOverContainer.setVisible(false);    
                     new Thread(game).start();                                           //Start mew thread tp run game
                     break;
@@ -999,22 +1035,27 @@ public class JoeFlowSays extends JFrame{
                 case "Red":
                     responses[numResponses] = 0;
                     currLight.lightUpDiff(thumbs[0]);
+                    playSound("Red");
                     break;
                 case "Blue":
                     responses[numResponses] = 1;
                     currLight.lightUpDiff(thumbs[1]);
+                    playSound("Blue");
                     break;
                 case "Green":
                     responses[numResponses] = 2;
                     currLight.lightUpDiff(thumbs[2]);
+                    playSound("Green");
                     break;
                 case "Yellow":
                     responses[numResponses] = 3;
                     currLight.lightUpDiff(thumbs[3]);
+                    playSound("Yellow");
                     break;
                 default:
                     responses[numResponses] = 4;
                     currLight.lightUpDiff(thumbs[4]);
+                    playSound("Orange");
                     break;
             }
             numResponses++;
