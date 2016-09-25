@@ -279,6 +279,10 @@ public class JoeFlowSays extends JFrame{
         if (pane.getComponentCount() > 0 && pane.getComponent(1).equals(startPanel)){
             pane.remove(startPanel);
         }
+        else{
+            JToolBar topMenuBar = getToolBar();
+            pane.add(topMenuBar, BorderLayout.PAGE_START);  //Add menu bar where "about" and "help buttons will sit
+        }
         pane.add(gamePanel);
         pane.validate();
         
@@ -983,9 +987,10 @@ public class JoeFlowSays extends JFrame{
                     player.stop();
                     new Thread(game).start();                                            //Start new thread to run game
                     break;
-                case "Try Again":                                                 
+                case "Try Again":
+                    pane.removeAll();
                     gameOverContainer.setVisible(false);    
-                    new Thread(game).start();                                           //Start mew thread tp run game
+                    new Thread(game).start();                                           //Start new thread tp run game
                     break;
                 case "Main Menu":
                     pane.removeAll();
