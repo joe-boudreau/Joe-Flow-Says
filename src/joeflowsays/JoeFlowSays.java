@@ -89,10 +89,8 @@ public class JoeFlowSays extends JFrame{
     private ImageIcon[]     thumbs;
     private JDialog         gameOverContainer;
     private JDialog         helpContainer;
-    private JDialog         aboutContainer;
     private Sequencer       player;
     private Sequence        gameMusic;
-    private boolean         musicOn = false;
     
     //Initialize some global variables
     private ImageIcon JoeIcon =                 new ImageIcon(getClass().getResource("/Images/Look and Feel/GameOverIcon.png"));
@@ -147,16 +145,12 @@ public class JoeFlowSays extends JFrame{
         try{ Thread.currentThread().sleep(2000);} catch (InterruptedException e) {};
         this.setVisible(true);                          //Opens JFrame
         
-        JToolBar topMenuBar = getToolBar();
-        
-        pane.add(topMenuBar, BorderLayout.PAGE_START);  //Add menu bar where "about" and "help buttons will sit
-        pane.add(startPanel, BorderLayout.CENTER);      //Add main start panel below the top menu bar
+        pane.add(startPanel);      
         pane.validate();
         pack();
         
         setResizable(false);
-        setSize(750,750+topMenuBar.getHeight());         //leave room for the topMenuBar. The background of the 
-                                                         //start panel is a static 750x750px image
+        setSize(750,750);         
                                                          
         thumbs = new ImageIcon[5];  //Initialize the game lights thumbnails for use in the results table
         thumbs[0] = new ImageIcon(getClass().getResource("/Images/Lights/RedLightSmall.jpg"));
@@ -187,34 +181,27 @@ public class JoeFlowSays extends JFrame{
      * content pane. 
      * <p>
      * This function sets up the visual appearance and attributes of the
-     * game's menu bar. It adds two buttons: Help and About. It aligns
-     * them with the far right side of the window using a BoxLayout and 
+     * game's menu bar. It adds one button, Help. It aligns
+     * it with the far right side of the window using a BoxLayout and 
      * a horizontal glue object.
      * 
      * @return the JToolBar to use at the top of the game content pane
      */
-    public JToolBar getToolBar(){
-        JToolBar menuBar = new JToolBar();
-        menuBar.setLayout(new BoxLayout(menuBar, BoxLayout.X_AXIS));
+    public JPanel getInfoBar(){
+        JPanel imfoBar = new JPanel();
+        imfoBar.setLayout(new BoxLayout(imfoBar, BoxLayout.X_AXIS));
         
-        JButton help = new JButton("Help");
+        JButton help = new JButton();
         help.setName("Help");
+        makeCustomButton(help, "/Images/Look and Feel/helpUP.png", "/Images/Look and Feel/helpP.png");
         help.addActionListener(PCListener);
+      
+        imfoBar.add(Box.createHorizontalGlue());
+        imfoBar.add(help);
+        imfoBar.setOpaque(false);
+        imfoBar.setBackground(new Color(0,0,0,0));
         
-        JButton about = new JButton("About");
-        about.setName("About");
-        about.addActionListener(PCListener);
-        
-        menuBar.add(Box.createHorizontalGlue());
-        menuBar.add(help);
-        menuBar.addSeparator();
-        menuBar.add(about);
-        menuBar.setFloatable(false);
-        menuBar.setRollover(true);
-        menuBar.setBackground(Color.WHITE);
-        menuBar.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, Color.WHITE, Color.LIGHT_GRAY));
-        
-        return menuBar;
+        return imfoBar;
     }
     
     /**
@@ -230,7 +217,6 @@ public class JoeFlowSays extends JFrame{
         
         JGamePanel sP = new JGamePanel("/Images/Look and Feel/backgroundMain.jpg");
         BoxLayout bl = new BoxLayout(sP, BoxLayout.Y_AXIS);
-        
         sP.setLayout(bl);
         
         JButton startButt = new JButton();
@@ -239,6 +225,9 @@ public class JoeFlowSays extends JFrame{
         startButt.setAlignmentX(Box.CENTER_ALIGNMENT);
         startButt.addActionListener(PCListener);
         
+        JPanel infoBar = getInfoBar();
+        
+        sP.add(infoBar);
         sP.add(Box.createVerticalStrut(550));       //Add the button 550px down from the top of the window
         sP.add(startButt);
  
@@ -261,12 +250,14 @@ public class JoeFlowSays extends JFrame{
         gamePanel.setLayout(new BoxLayout(gamePanel, BoxLayout.Y_AXIS));
         
         //Set up the panels that will be added to the gamePanel
+        JPanel infoBar = getInfoBar();
         MsgPanel topPanel = new MsgPanel("Ready?");
         JPanel lightsPanel = setUpLightsRow();
         JPanel buttonRow = setUpButtonsRow();
         JPanel resultsPanel = setUpResultsPanel();
 
         //Lay out the panels in the game Panel
+        gamePanel.add(infoBar);
         gamePanel.add(topPanel);
         gamePanel.add(lightsPanel);
         gamePanel.add(Box.createVerticalStrut(40));
@@ -276,12 +267,8 @@ public class JoeFlowSays extends JFrame{
         gamePanel.add(Box.createVerticalStrut(20));
         
         //if coming from the start panel, remove the start panel before adding the game panel
-        if (pane.getComponentCount() > 0 && pane.getComponent(1).equals(startPanel)){
+        if (pane.getComponentCount() > 0 && pane.getComponent(0).equals(startPanel)){
             pane.remove(startPanel);
-        }
-        else{
-            JToolBar topMenuBar = getToolBar();
-            pane.add(topMenuBar, BorderLayout.PAGE_START);  //Add menu bar where "about" and "help buttons will sit
         }
         pane.add(gamePanel);
         pane.validate();
@@ -415,45 +402,6 @@ public class JoeFlowSays extends JFrame{
         helpContainer.setLocationRelativeTo(this);
         helpContainer.setVisible(true); 
         
-    }
-    
-    /**
-     * Creates the about dialog using a JDialog instance, displays it in the
-     * middle of the window.
-     * <p>
-     * This JDialog instance has no header border, and therefore no system exit
-     * button. The exit button is a custom added JButton
-     */
-    public void showAboutDialog(){
-        
-        aboutContainer = new JDialog(this, "About", true);
-        
-        JPanel aboutPanel = new JPanel();
-        aboutPanel.setLayout(new BoxLayout(aboutPanel, BoxLayout.Y_AXIS));
-        
-        JLabel introText = new JLabel("Insert stuff here \n \n \n \n \n hey hey hey");
-        
-        JPanel topPanel = new JPanel();
-        JButton exitAbout = new JButton("Exit");
-        exitAbout.setName("Exit About");
-        
-        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
-        exitAbout.addActionListener(PCListener);
-        
-        topPanel.add(Box.createHorizontalGlue());
-        topPanel.add(exitAbout);
-        
-        aboutPanel.add(topPanel);
-        aboutPanel.add(introText);
-        
-        aboutContainer.setContentPane(aboutPanel);
-        aboutContainer.setResizable(false);
-        aboutContainer.setUndecorated(true); //removes the system border and exit button
-        aboutContainer.pack();
-        aboutContainer.setSize(300,100);
-        aboutContainer.setLocationRelativeTo(this);
-        aboutContainer.setVisible(true);
-
     }
     
     /**
@@ -628,7 +576,7 @@ public class JoeFlowSays extends JFrame{
         
         JPanel buttRow = new JPanel();
         buttRow.setOpaque(false);
-        buttRow.setLayout(new GridLayout(2, 5)); //Grid layout with 2 rows and 5 columns
+        buttRow.setLayout(new GridLayout(1, 5)); //Grid layout with 1 row and 5 columns
         
         Action buttListen = new ButtonAction(); //Common Action Listener for all the buttons
         
@@ -691,26 +639,6 @@ public class JoeFlowSays extends JFrame{
             buttRow.add(buttons[i]);
             buttons[i].addActionListener(buttListen);   //Assign the action listener
             buttons[i].setEnabled(false);               //default set to enabled
-        }
-        
-        //ImageIcons to show the keyboard buttons which can be used to play the game
-        ImageIcon CKey = new ImageIcon(getClass().getResource("/Images/Keyboard Shortcuts/c.png"));
-        ImageIcon VKey = new ImageIcon(getClass().getResource("/Images/Keyboard Shortcuts/v.png"));
-        ImageIcon BKey = new ImageIcon(getClass().getResource("/Images/Keyboard Shortcuts/b.png"));
-        ImageIcon NKey = new ImageIcon(getClass().getResource("/Images/Keyboard Shortcuts/n.png"));
-        ImageIcon MKey = new ImageIcon(getClass().getResource("/Images/Keyboard Shortcuts/m.png"));
-        
-        JLabel[] buttKeyLabels = new JLabel[5];
-        
-        buttKeyLabels[0] = new JLabel(CKey);
-        buttKeyLabels[1] = new JLabel(VKey);
-        buttKeyLabels[2] = new JLabel(BKey);
-        buttKeyLabels[3] = new JLabel(NKey);
-        buttKeyLabels[4] = new JLabel(MKey);
-        
-        //Add the keyboard button image icons to the second row of the button Panel
-        for(int ii = 0; ii < 5; ii++){
-            buttRow.add(buttKeyLabels[ii]);
         }
         
         return buttRow;
@@ -984,15 +912,18 @@ public class JoeFlowSays extends JFrame{
             //Action performed is dependent on which button click initiated the call to the interface
             if(null!= buttonName) switch (buttonName){
                 case "Start":
+                    playSound("Click");
                     player.stop();
                     new Thread(game).start();                                            //Start new thread to run game
                     break;
                 case "Try Again":
+                    playSound("Click");
                     pane.removeAll();
                     gameOverContainer.setVisible(false);    
                     new Thread(game).start();                                           //Start new thread tp run game
                     break;
                 case "Main Menu":
+                    playSound("Click");
                     pane.removeAll();
                     gameOverContainer.setVisible(false);
                     new Thread(start).start();                                         //Restart game in new thread
@@ -1001,16 +932,12 @@ public class JoeFlowSays extends JFrame{
                     gameOverContainer.setVisible(false);
                     System.exit(0);                                                   //Exit game
                     break;
-                case "About":
-                    showAboutDialog();
-                    break;
                 case "Help":
+                    playSound("Click");
                     showHelpDialog();
                     break;
-                case "Exit About":
-                    aboutContainer.setVisible(false);
-                    break;
                 case "Exit Help":
+                    playSound("Click");
                     helpContainer.setVisible(false);
                     break;
             }
