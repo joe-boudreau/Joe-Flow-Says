@@ -21,6 +21,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics;
@@ -70,6 +71,7 @@ import javax.sound.midi.Track;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.AudioInputStream;
+import javax.swing.JTabbedPane;
 
 
 /**
@@ -96,6 +98,7 @@ public class JoeFlowSays extends JFrame{
     private ImageIcon JoeIcon =                 new ImageIcon(getClass().getResource("/Images/Look and Feel/GameOverIcon.png"));
     private PanelChangeListener PCListener =    new PanelChangeListener();
     Object LOCK =                               new Object();
+    
     /**
      * Constructor method runs the separate initializer function
      */
@@ -379,26 +382,33 @@ public class JoeFlowSays extends JFrame{
         JPanel helpPanel = new JPanel();
         helpPanel.setLayout(new BoxLayout(helpPanel, BoxLayout.Y_AXIS));
         
-        JLabel helpText = new JLabel("Insert stuff here \n \n \n \n \n hey hey hey");
-        
         JPanel topPanel = new JPanel();
-        JButton exitHelp = new JButton("Exit");
-        exitHelp.setName("Exit Help");
-        
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+        
+        JButton exitHelp = new JButton();
+        exitHelp.setName("Exit Help");
+        makeCustomButton(exitHelp, "/Images/Look and Feel/exitUP.png", "/Images/Look and Feel/exitP.png");
         exitHelp.addActionListener(PCListener);
         
         topPanel.add(Box.createHorizontalGlue());
         topPanel.add(exitHelp);
+        topPanel.add(Box.createHorizontalStrut(5));
         
+        JTabbedPane tabsPane = new JTabbedPane();
+        
+        JLabel aboutImage = new JLabel(new ImageIcon(getClass().getResource("/Images/About/AboutPanel.jpg")));
+        
+        tabsPane.add("About", aboutImage);
+
+        helpPanel.add(Box.createVerticalStrut(5));
         helpPanel.add(topPanel);
-        helpPanel.add(helpText);
+        helpPanel.add(Box.createVerticalStrut(10));
+        helpPanel.add(tabsPane);
         
         helpContainer.setContentPane(helpPanel);
         helpContainer.setResizable(false);
         helpContainer.setUndecorated(true); //removes the sytem border and exit button
         helpContainer.pack();
-        helpContainer.setSize(300,100);
         helpContainer.setLocationRelativeTo(this);
         helpContainer.setVisible(true); 
         
