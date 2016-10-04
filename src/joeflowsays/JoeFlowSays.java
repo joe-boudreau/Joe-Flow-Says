@@ -71,7 +71,9 @@ import javax.sound.midi.Track;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.AudioInputStream;
+import javax.swing.AbstractButton;
 import javax.swing.JTabbedPane;
+import javax.swing.JToggleButton;
 
 
 /**
@@ -86,18 +88,21 @@ public class JoeFlowSays extends JFrame{
     private JPanel          gamePanel;
     private JPanel          userSeq;
     private JPanel          computerSeq;
-    private int[]           responses = new int[10];
     private int             numResponses;
     private ImageIcon[]     thumbs;
     private JDialog         gameOverContainer;
     private JDialog         helpContainer;
     private Sequencer       player;
     private Sequence        gameMusic;
+    private JLabel          highScore;
     
     //Initialize some global variables
     private ImageIcon JoeIcon =                 new ImageIcon(getClass().getResource("/Images/Look and Feel/GameOverIcon.png"));
     private PanelChangeListener PCListener =    new PanelChangeListener();
+    private boolean volumeOFF =                 false;
+    private int[] responses =                   new int[10];
     Object LOCK =                               new Object();
+    
     
     /**
      * Constructor method runs the separate initializer function
@@ -161,6 +166,9 @@ public class JoeFlowSays extends JFrame{
         thumbs[2] = new ImageIcon(getClass().getResource("/Images/Lights/GreenLightSmall.jpg"));
         thumbs[3] = new ImageIcon(getClass().getResource("/Images/Lights/YellowLightSmall.jpg"));
         thumbs[4] = new ImageIcon(getClass().getResource("/Images/Lights/OrangeLightSmall.jpg"));
+        
+        highScore = new JLabel("0");
+        highScore.setFont(gameFonts("Gameplay",16f));
     }
     
     /**
@@ -207,6 +215,25 @@ public class JoeFlowSays extends JFrame{
         return imfoBar;
     }
     
+    public JPanel getVolumeBar(){
+        JPanel volumeBar = new JPanel();
+        volumeBar.setLayout(new BoxLayout(volumeBar, BoxLayout.X_AXIS));
+        
+        JToggleButton vol = new JToggleButton("",volumeOFF);
+        vol.setName("Volume");
+        makeCustomButton(vol, "/Images/Look and Feel/VolumeButtonUnpressed.png",
+                "/Images/Look and Feel/VolumeButtonPressed.png");
+        vol.addActionListener(PCListener);
+        
+        volumeBar.add(vol);
+        volumeBar.add(Box.createHorizontalGlue());
+        volumeBar.setOpaque(false);
+        volumeBar.setBackground(new Color(0,0,0,0));
+        
+        return volumeBar;
+        
+    }
+    
     /**
      * Returns the JGamePanel object that will be used as the start panel.
      * <p>
@@ -229,10 +256,13 @@ public class JoeFlowSays extends JFrame{
         startButt.addActionListener(PCListener);
         
         JPanel infoBar = getInfoBar();
+        JPanel bottomVolumeBar = getVolumeBar();
         
         sP.add(infoBar);
         sP.add(Box.createVerticalStrut(550));       //Add the button 550px down from the top of the window
         sP.add(startButt);
+        sP.add(Box.createVerticalGlue());
+        sP.add(bottomVolumeBar);
  
         return sP;
     }
@@ -254,20 +284,30 @@ public class JoeFlowSays extends JFrame{
         
         //Set up the panels that will be added to the gamePanel
         JPanel infoBar = getInfoBar();
+        JPanel scorePanel = setUpScorePanel();
         MsgPanel topPanel = new MsgPanel("Ready?");
         JPanel lightsPanel = setUpLightsRow();
         JPanel buttonRow = setUpButtonsRow();
         JPanel resultsPanel = setUpResultsPanel();
-
+        JPanel bottomVolumeBar = getVolumeBar();
+        
+        JPanel MsgandScore = new JPanel();
+        MsgandScore.setLayout(new BoxLayout(MsgandScore,BoxLayout.PAGE_AXIS));
+        MsgandScore.add(scorePanel);
+        MsgandScore.add(Box.createHorizontalGlue());
+        MsgandScore.add(topPanel);
+        
         //Lay out the panels in the game Panel
         gamePanel.add(infoBar);
-        gamePanel.add(topPanel);
+        gamePanel.add(MsgandScore);
         gamePanel.add(lightsPanel);
         gamePanel.add(Box.createVerticalStrut(40));
         gamePanel.add(buttonRow);
         gamePanel.add(Box.createVerticalStrut(70));
         gamePanel.add(resultsPanel);
         gamePanel.add(Box.createVerticalStrut(20));
+        gamePanel.add(Box.createVerticalGlue());
+        gamePanel.add(bottomVolumeBar);
         
         //if coming from the start panel, remove the start panel before adding the game panel
         if (pane.getComponentCount() > 0 && pane.getComponent(0).equals(startPanel)){
@@ -381,28 +421,38 @@ public class JoeFlowSays extends JFrame{
         
         JPanel helpPanel = new JPanel();
         helpPanel.setLayout(new BoxLayout(helpPanel, BoxLayout.Y_AXIS));
+        helpPanel.setBackground(Color.LIGHT_GRAY);
+        helpPanel.setBorder(new LineBorder(Color.BLACK, 3));
         
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+        topPanel.setBackground(Color.LIGHT_GRAY);
         
         JButton exitHelp = new JButton();
         exitHelp.setName("Exit Help");
         makeCustomButton(exitHelp, "/Images/Look and Feel/exitUP.png", "/Images/Look and Feel/exitP.png");
         exitHelp.addActionListener(PCListener);
+        exitHelp.setAlignmentX(LEFT_ALIGNMENT);
+        exitHelp.setAlignmentY(BOTTOM_ALIGNMENT);
         
+        JLabel title = new JLabel(new ImageIcon(getClass().getResource("/Images/About/helpDialogTitle.png")));
+
+        topPanel.add(Box.createHorizontalStrut(160));
+        topPanel.add(title);
         topPanel.add(Box.createHorizontalGlue());
         topPanel.add(exitHelp);
-        topPanel.add(Box.createHorizontalStrut(5));
         
         JTabbedPane tabsPane = new JTabbedPane();
         
+        JLabel helpImage = new JLabel(new ImageIcon(getClass().getResource("/Images/About/HelpPanel.jpg")));        
         JLabel aboutImage = new JLabel(new ImageIcon(getClass().getResource("/Images/About/AboutPanel.jpg")));
         
+        tabsPane.add("Help", helpImage);
         tabsPane.add("About", aboutImage);
 
         helpPanel.add(Box.createVerticalStrut(5));
         helpPanel.add(topPanel);
-        helpPanel.add(Box.createVerticalStrut(10));
+        helpPanel.add(Box.createVerticalStrut(5));
         helpPanel.add(tabsPane);
         
         helpContainer.setContentPane(helpPanel);
@@ -735,6 +785,59 @@ public class JoeFlowSays extends JFrame{
         return resultsPanel;
     }
     
+    public JPanel setUpScorePanel(){
+
+    JPanel scorePanel = new JPanel();
+    scorePanel.setLayout(new BoxLayout(scorePanel, BoxLayout.X_AXIS));
+    setAbsoluteSize(scorePanel, 120, 100);
+    scorePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    scorePanel.setOpaque(false);
+
+    JPanel goalBox = new JPanel();
+    goalBox.setLayout(new BoxLayout(goalBox,BoxLayout.X_AXIS));
+    goalBox.setBorder(new LineBorder(Color.BLACK, 1));
+    setAbsoluteSize(goalBox, 120, 50);
+    goalBox.setBackground(Color.WHITE);
+
+    JLabel computerTitle = new JLabel("Goal:");
+    computerTitle.setFont(gameFonts("Gameplay", 12f));
+    computerTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);         //Align text with right edge
+    goalBox.add(computerTitle);
+    goalBox.add(new JSeparator(SwingConstants.VERTICAL));
+
+    JPanel highScoreBox = new JPanel();
+    highScoreBox.setLayout(new BoxLayout(highScoreBox,BoxLayout.X_AXIS));
+    highScoreBox.setBorder(new LineBorder(Color.BLACK, 1));
+    setAbsoluteSize(highScoreBox, 120, 50);
+    highScoreBox.setBackground(Color.WHITE);
+
+    JLabel userTitle = new JLabel("High Score:");
+    userTitle.setFont(gameFonts("Gameplay",12f));
+    userTitle.setPreferredSize(new Dimension(                       //Make the width of the User Row Title
+            computerTitle.getPreferredSize().width,                 // the same as the Computer Row Title            
+            computerTitle.getPreferredSize().height));
+    userTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);             //Align text with right edge
+    userTitle.setHorizontalAlignment(SwingConstants.RIGHT);
+    highScoreBox.add(userTitle);
+    highScoreBox.add(new JSeparator(SwingConstants.VERTICAL));
+
+    JLabel goalScore = new JLabel("10");
+    goalScore.setFont(gameFonts("Gameplay",16f));
+    
+    
+    highScoreBox.add(highScore);
+    goalBox.add(goalScore);
+
+    scorePanel.add(highScoreBox);
+    scorePanel.add(goalBox);
+    scorePanel.setBorder(BorderFactory.createTitledBorder(new EtchedBorder(EtchedBorder.LOWERED),
+            "Score", TitledBorder.LEFT, TitledBorder.LEFT, gameFonts("Gameplay",20f),
+            Color.WHITE));
+
+    return scorePanel;
+    
+    }
+    
     /**
      * Lights up a random Jlight in the lights panel every 850ms a specific number of times
      * <p>
@@ -782,23 +885,24 @@ public class JoeFlowSays extends JFrame{
         return Seq;
     }
     
-    public static synchronized void playSound(final String Colour) {
+    public synchronized void playSound(final String Colour) {
         
-        
-        new Thread(new Runnable() {
-        public void run() {
-          try {
-            Clip clip = AudioSystem.getClip();
-            AudioInputStream inputStream = AudioSystem.getAudioInputStream(
-            new File(getClass().getResource("/Sound/"+Colour+"Sound.wav").toURI()));
-            clip.open(inputStream);
-            clip.start(); 
-          } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.out.println("fucked up");
-          }
+        if(!volumeOFF){
+            new Thread(new Runnable() {
+            public void run() {
+              try {
+                Clip clip = AudioSystem.getClip();
+                AudioInputStream inputStream = AudioSystem.getAudioInputStream(
+                new File(getClass().getResource("/Sound/"+Colour+"Sound.wav").toURI()));
+                clip.open(inputStream);
+                clip.start(); 
+              } catch (Exception e) {
+                System.err.println(e.getMessage());
+                System.out.println("fucked up");
+              }
+            }
+          }).start();
         }
-      }).start();
     }
     
     /**
@@ -838,6 +942,20 @@ public class JoeFlowSays extends JFrame{
         butt.setContentAreaFilled(false);   //do not paint the entire JButton background
         butt.setBorderPainted(false);
         butt.setFocusPainted(false);
+        
+    }
+    
+    public void makeCustomButton(JToggleButton butt, String unpressed, String pressed){
+        butt.setIcon(new ImageIcon(getClass().getResource(unpressed)));
+        butt.setPressedIcon(new ImageIcon(getClass().getResource(pressed)));
+        butt.setSelectedIcon(new ImageIcon(getClass().getResource(pressed)));
+
+        butt.setOpaque(false);              //let unpainted areas of button show
+                                            //the image below it
+        butt.setContentAreaFilled(false);   //do not paint the entire JButton background
+        butt.setBorderPainted(false);
+        butt.setFocusPainted(false);
+        
     }
     
     /**
@@ -903,7 +1021,7 @@ public class JoeFlowSays extends JFrame{
         
         @Override
         public void actionPerformed(ActionEvent e) {
-            JButton src = (JButton) e.getSource();
+            AbstractButton src = (AbstractButton) e.getSource();
             String buttonName = src.getName();
             
             Runnable game = new Runnable(){
@@ -949,6 +1067,16 @@ public class JoeFlowSays extends JFrame{
                 case "Exit Help":
                     playSound("Click");
                     helpContainer.setVisible(false);
+                    break;
+                case "Volume":
+                    
+                    if(!volumeOFF && player.isRunning()){
+                        player.stop();
+                    }
+                    if(volumeOFF && pane.getComponent(0).equals(startPanel)){
+                        player.start();
+                    }
+                    volumeOFF = !volumeOFF;
                     break;
             }
         }
@@ -1090,7 +1218,6 @@ public class JoeFlowSays extends JFrame{
         private MsgPanel(String initText) {
             
             txt = initText;
-            
             displayText = new JLabel(txt);
 
             displayText.setFont(gameFonts("Karmatic Arcade", 35f));
