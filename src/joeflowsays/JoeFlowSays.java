@@ -91,6 +91,7 @@ public class JoeFlowSays extends JFrame{
     private int             numResponses;
     private ImageIcon[]     thumbs;
     private JDialog         gameOverContainer;
+    private JDialog         WinGameContainer;
     private JDialog         helpContainer;
     private Sequencer       player;
     private Sequence        gameMusic;
@@ -102,6 +103,7 @@ public class JoeFlowSays extends JFrame{
     private boolean volumeOFF =                 false;
     private int[] responses =                   new int[10];
     Object LOCK =                               new Object();
+    Object LOCK2 =                              new Object();
     
     
     /**
@@ -296,9 +298,10 @@ public class JoeFlowSays extends JFrame{
         topPanel.setAlignmentY(CENTER_ALIGNMENT);
         MsgandScore.setLayout(new BoxLayout(MsgandScore,BoxLayout.X_AXIS));
         MsgandScore.setOpaque(false);
-        MsgandScore.add(Box.createHorizontalStrut(20));
+        MsgandScore.add(Box.createHorizontalStrut(25));
         MsgandScore.add(scorePanel);
         MsgandScore.add(topPanel);
+        MsgandScore.add(Box.createHorizontalStrut(110));
         
         //Lay out the panels in the game Panel
         gamePanel.add(infoBar);
@@ -351,7 +354,7 @@ public class JoeFlowSays extends JFrame{
         int seqLength = 1;                                      //seqLength is the number of lights to light up in a row, increases by 1 each level
         int[] lightSeq;
         
-        while(stillWinning && seqLength < 10){
+        while(stillWinning && seqLength <= 10){
             
             try{ Thread.currentThread().sleep(700);} catch (InterruptedException e) {};
             topPanel.setText("Level " + Integer.toString(seqLength));   //indicate level
@@ -411,6 +414,9 @@ public class JoeFlowSays extends JFrame{
    
         if (!stillWinning){ 
             showGameOverDialog();                               //If user lost, show game over dialog
+        }
+        else{
+            showWinGameDialog();
         }
 
     }
@@ -517,6 +523,44 @@ public class JoeFlowSays extends JFrame{
         gameOverContainer.setLocationRelativeTo(this);
         gameOverContainer.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         gameOverContainer.setVisible(true);
+    }
+    
+    public void showWinGameDialog(){
+
+        JButton[] prizeButt = new JButton[1];
+        prizeButt[0] = new JButton();
+        prizeButt[0].setName("Prize");
+        prizeButt[0].addActionListener(PCListener);
+        makeCustomButton(prizeButt[0], "/Images/Look and Feel/PrizeButtonUnpressed.png",
+                                    "/Images/Look and Feel/PrizeButtonPressed.png");
+
+        JPanel messagePanel = new JPanel();   //This JPanel is used instead of text in the JOpionPane
+        messagePanel.setLayout(new BoxLayout(messagePanel, BoxLayout.Y_AXIS));
+        messagePanel.setOpaque(true);
+        JLabel msg1 = new JLabel("YOU WIN!!!", JLabel.CENTER);
+        msg1.setFont(new Font("Gameplay Regular",Font.PLAIN,15));
+        
+        JLabel msg2 = new JLabel("Click below to claim your prize!", JLabel.CENTER);
+        msg2.setFont(new Font("Gameplay Regular",Font.PLAIN,12));
+        
+        messagePanel.add(Box.createVerticalGlue());
+        messagePanel.add(msg1);
+        messagePanel.add(msg2);
+        messagePanel.add(Box.createVerticalGlue());
+        
+        JOptionPane winGamePane = new JOptionPane(messagePanel, JOptionPane.ERROR_MESSAGE,
+        JOptionPane.OK_OPTION, JoeIcon, prizeButt);
+
+        WinGameContainer = new JDialog(this, "Joe Flow Says", true);
+        WinGameContainer.setContentPane(winGamePane);
+        WinGameContainer.getContentPane().setBackground(Color.WHITE);
+        makeComponentsWhiteBG(WinGameContainer);               //Make background of dialog window white
+
+        WinGameContainer.pack();
+        WinGameContainer.setLocationRelativeTo(this);
+        WinGameContainer.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        WinGameContainer.setVisible(true);
+    
     }
     
     /**
@@ -1081,6 +1125,10 @@ public class JoeFlowSays extends JFrame{
                 case "Exit Help":
                     playSound("Click");
                     helpContainer.setVisible(false);
+                    break;
+                case "Prize":
+                    WinGameContainer.setVisible(false);
+                    System.exit(0);                                                   //Exit game
                     break;
                 case "Volume":
                     
