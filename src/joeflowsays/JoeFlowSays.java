@@ -292,9 +292,12 @@ public class JoeFlowSays extends JFrame{
         JPanel bottomVolumeBar = getVolumeBar();
         
         JPanel MsgandScore = new JPanel();
-        MsgandScore.setLayout(new BoxLayout(MsgandScore,BoxLayout.PAGE_AXIS));
+        scorePanel.setAlignmentX(TOP_ALIGNMENT);
+        topPanel.setAlignmentY(CENTER_ALIGNMENT);
+        MsgandScore.setLayout(new BoxLayout(MsgandScore,BoxLayout.X_AXIS));
+        MsgandScore.setOpaque(false);
+        MsgandScore.add(Box.createHorizontalStrut(20));
         MsgandScore.add(scorePanel);
-        MsgandScore.add(Box.createHorizontalGlue());
         MsgandScore.add(topPanel);
         
         //Lay out the panels in the game Panel
@@ -303,10 +306,9 @@ public class JoeFlowSays extends JFrame{
         gamePanel.add(lightsPanel);
         gamePanel.add(Box.createVerticalStrut(40));
         gamePanel.add(buttonRow);
-        gamePanel.add(Box.createVerticalStrut(70));
+        gamePanel.add(Box.createVerticalGlue());
         gamePanel.add(resultsPanel);
         gamePanel.add(Box.createVerticalStrut(20));
-        gamePanel.add(Box.createVerticalGlue());
         gamePanel.add(bottomVolumeBar);
         
         //if coming from the start panel, remove the start panel before adding the game panel
@@ -389,6 +391,10 @@ public class JoeFlowSays extends JFrame{
             if(Arrays.equals(lightSeq, responses)){             //Check if the user is correct
                 System.out.println("Correct!");
                 playSound("Correct");
+                if( Integer.parseInt(highScore.getText()) < seqLength ){
+                    highScore.setText(Integer.toString(seqLength));
+                    MsgandScore.getComponent(1).validate();
+                }
                 seqLength++;                                    //increase sequence length for the next level
                 numResponses = 0;                               //reset number of responses
                 for(int i = 0; i<10; i++){responses[i] = 0;}    //reset responses
@@ -788,7 +794,7 @@ public class JoeFlowSays extends JFrame{
     public JPanel setUpScorePanel(){
 
     JPanel scorePanel = new JPanel();
-    scorePanel.setLayout(new BoxLayout(scorePanel, BoxLayout.X_AXIS));
+    scorePanel.setLayout(new BoxLayout(scorePanel, BoxLayout.Y_AXIS));
     setAbsoluteSize(scorePanel, 120, 100);
     scorePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     scorePanel.setOpaque(false);
@@ -796,34 +802,42 @@ public class JoeFlowSays extends JFrame{
     JPanel goalBox = new JPanel();
     goalBox.setLayout(new BoxLayout(goalBox,BoxLayout.X_AXIS));
     goalBox.setBorder(new LineBorder(Color.BLACK, 1));
-    setAbsoluteSize(goalBox, 120, 50);
+    //setAbsoluteSize(goalBox, 120, 50);
     goalBox.setBackground(Color.WHITE);
 
-    JLabel computerTitle = new JLabel("Goal:");
-    computerTitle.setFont(gameFonts("Gameplay", 12f));
-    computerTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);         //Align text with right edge
-    goalBox.add(computerTitle);
-    goalBox.add(new JSeparator(SwingConstants.VERTICAL));
+
 
     JPanel highScoreBox = new JPanel();
     highScoreBox.setLayout(new BoxLayout(highScoreBox,BoxLayout.X_AXIS));
     highScoreBox.setBorder(new LineBorder(Color.BLACK, 1));
-    setAbsoluteSize(highScoreBox, 120, 50);
+    //setAbsoluteSize(highScoreBox, 120, 50);
     highScoreBox.setBackground(Color.WHITE);
 
     JLabel userTitle = new JLabel("High Score:");
+    userTitle.setAlignmentX(Component.RIGHT_ALIGNMENT); 
     userTitle.setFont(gameFonts("Gameplay",12f));
-    userTitle.setPreferredSize(new Dimension(                       //Make the width of the User Row Title
-            computerTitle.getPreferredSize().width,                 // the same as the Computer Row Title            
-            computerTitle.getPreferredSize().height));
-    userTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);             //Align text with right edge
-    userTitle.setHorizontalAlignment(SwingConstants.RIGHT);
+    
     highScoreBox.add(userTitle);
     highScoreBox.add(new JSeparator(SwingConstants.VERTICAL));
 
+    JLabel computerTitle = new JLabel("Goal:");
+    computerTitle.setFont(gameFonts("Gameplay", 12f));
+    computerTitle.setPreferredSize(new Dimension(                       //Make the width of the User Row Title
+            userTitle.getPreferredSize().width,                 // the same as the Computer Row Title            
+            userTitle.getPreferredSize().height));
+    computerTitle.setAlignmentX(Component.RIGHT_ALIGNMENT);             //Align text with right edge
+    computerTitle.setHorizontalAlignment(SwingConstants.RIGHT);       //Align text with right edge
+    
+    goalBox.add(computerTitle);
+    goalBox.add(new JSeparator(SwingConstants.VERTICAL));
+    
     JLabel goalScore = new JLabel("10");
     goalScore.setFont(gameFonts("Gameplay",16f));
     
+    highScore.setPreferredSize(new Dimension(                       //Make the width of the User Row Title
+            goalScore.getPreferredSize().width,                 // the same as the Computer Row Title            
+            goalScore.getPreferredSize().height));
+    highScore.setHorizontalAlignment(SwingConstants.RIGHT);  
     
     highScoreBox.add(highScore);
     goalBox.add(goalScore);
