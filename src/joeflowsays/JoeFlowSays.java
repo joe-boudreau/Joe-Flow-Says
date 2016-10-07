@@ -29,11 +29,13 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import java.net.URISyntaxException;
+import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
@@ -101,6 +103,7 @@ public class JoeFlowSays extends JFrame{
     private ImageIcon JoeIcon =                 new ImageIcon(getClass().getResource("/Images/Look and Feel/GameOverIcon.png"));
     private PanelChangeListener PCListener =    new PanelChangeListener();
     private boolean volumeOFF =                 false;
+    private boolean initialStart =              true;
     private int[] responses =                   new int[10];
     Object LOCK =                               new Object();
     Object LOCK2 =                              new Object();
@@ -141,18 +144,16 @@ public class JoeFlowSays extends JFrame{
         
         BufferedImage JFlowIcon = null;
             try {                                       //importing the Image Icon
-                JFlowIcon = ImageIO.read(new File(getClass().
-                        getResource("/Images/Look and Feel/WindowIcon.png").toURI()));
-            } catch (IOException e){
-            } catch (URISyntaxException u){    
-            }
+                JFlowIcon = ImageIO.read(getClass().getResourceAsStream("/Images/Look and Feel/WindowIcon.png"));
+            } catch (IOException e){}
         
         setLayout(new BorderLayout());
         setTitle("Joe Flow Says!");
         setLocationByPlatform(false);                   //Opens in top-left corner of screen
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setIconImage(JFlowIcon);
-        try{ Thread.currentThread().sleep(2000);} catch (InterruptedException e) {};
+        if(initialStart){try{ Thread.currentThread().sleep(2000);} catch (InterruptedException e) {};}
+        
         this.setVisible(true);                          //Opens JFrame
         
         pane.add(startPanel);      
@@ -169,8 +170,11 @@ public class JoeFlowSays extends JFrame{
         thumbs[3] = new ImageIcon(getClass().getResource("/Images/Lights/YellowLightSmall.jpg"));
         thumbs[4] = new ImageIcon(getClass().getResource("/Images/Lights/OrangeLightSmall.jpg"));
         
-        highScore = new JLabel("0");
-        highScore.setFont(gameFonts("Gameplay",16f));
+        if(highScore == null){
+            highScore = new JLabel("0");
+            highScore.setFont(gameFonts("Gameplay",16f));
+        }
+        initialStart = false;
     }
     
     /**
@@ -950,11 +954,12 @@ public class JoeFlowSays extends JFrame{
             public void run() {
               try {
                 Clip clip = AudioSystem.getClip();
-                AudioInputStream inputStream = AudioSystem.getAudioInputStream(
-                new File(getClass().getResource("/Sound/"+Colour+"Sound.wav").toURI()));
+                InputStream audioSrc = getClass().getResourceAsStream("/Sound/"+Colour+"Sound.wav");
+                InputStream bufferedIn = new BufferedInputStream(audioSrc);
+                AudioInputStream inputStream = AudioSystem.getAudioInputStream(bufferedIn);
                 clip.open(inputStream);
                 clip.start(); 
-              } catch (Exception e) {
+              }catch (Exception e) {
                 System.err.println(e.getMessage());
                 System.out.println("fucked up");
               }
@@ -1049,8 +1054,8 @@ public class JoeFlowSays extends JFrame{
             
             try{
                 daFont = Font.createFont(Font.TRUETYPE_FONT,
-                        new File(getClass().getResource("/Images/Look and Feel/ka1.ttf").toURI()));
-            } catch(IOException | URISyntaxException | FontFormatException f){
+                        getClass().getResourceAsStream("/Images/Look and Feel/ka1.ttf"));
+            } catch(IOException | FontFormatException f){
                 daFont = new Font("Arial", Font.PLAIN, 24);}    //default to Arial Size 24
             
             return daFont.deriveFont(size);
@@ -1059,8 +1064,8 @@ public class JoeFlowSays extends JFrame{
             
             try{
                 daFont = Font.createFont(Font.TRUETYPE_FONT,
-                        new File(getClass().getResource("/Images/Look and Feel/Gameplay.ttf").toURI()));
-            } catch(IOException | URISyntaxException | FontFormatException f){
+                        getClass().getResourceAsStream("/Images/Look and Feel/Gameplay.ttf"));
+            } catch(IOException | FontFormatException f){
                 daFont = new Font("Arial", Font.PLAIN, 24);}    //default to Arial Size 24   
             
             return daFont.deriveFont(size);
@@ -1258,10 +1263,8 @@ public class JoeFlowSays extends JFrame{
         protected void paintComponent(Graphics g) {
             BufferedImage bg = null;
                 try {
-                    bg = ImageIO.read(new File(getClass().getResource(filePath).toURI()));
-                } catch (IOException e){
-                } catch (URISyntaxException u){
-                }
+                    bg = ImageIO.read(getClass().getResourceAsStream(filePath));
+                } catch (IOException e){}
             
             super.paintComponent(g);
             g.drawImage(bg, 0, 0, null);
